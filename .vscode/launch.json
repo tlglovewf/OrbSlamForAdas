@@ -1,0 +1,29 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(gdb) Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            // "program": "${workspaceFolder}/Examples/Stereo/stereo_kitti",
+            // "args": ["${workspaceFolder}/Vocabulary/ORBvoc.txt","${workspaceFolder}/Examples/Stereo/KITTI00-02.yaml","/media/navinfo/Bak/Datas/00/"],
+            "program": "${workspaceFolder}/Examples/Monocular/weiya",
+            "args": ["${workspaceFolder}/Vocabulary/ORBvoc.txt","${workspaceFolder}/Examples/Monocular/KITTI00-02.yaml","/media/navinfo/Bak/Datas/00/"],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+    ]
+}
