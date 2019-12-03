@@ -72,6 +72,10 @@ public:
         return mlNewKeyFrames.size();
     }
 
+    bool allowInsert()const
+    {
+        return !isHandled;
+    }
 protected:
 
     bool CheckNewKeyFrames();
@@ -97,6 +101,7 @@ protected:
     void SetFinish();
     bool mbFinishRequested;
     bool mbFinished;
+    bool isHandled;
     std::mutex mMutexFinish;
 
     Map* mpMap;

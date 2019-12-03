@@ -120,6 +120,9 @@ cv::Mat KeyFrame::GetTranslation()
     return Tcw.rowRange(0,3).col(3).clone();
 }
 
+//添加关联   
+//pKF     关联的关键帧
+//weight  关联点的数量
 void KeyFrame::AddConnection(KeyFrame *pKF, const int &weight)
 {
     {
@@ -165,6 +168,7 @@ set<KeyFrame*> KeyFrame::GetConnectedKeyFrames()
     return s;
 }
 
+//获取共视关键帧
 vector<KeyFrame*> KeyFrame::GetVectorCovisibleKeyFrames()
 {
     unique_lock<mutex> lock(mMutexConnections);
@@ -273,7 +277,7 @@ int KeyFrame::TrackedMapPoints(const int &minObs)
 
     return nPoints;
 }
-
+//获取地图点
 vector<MapPoint*> KeyFrame::GetMapPointMatches()
 {
     unique_lock<mutex> lock(mMutexFeatures);
@@ -309,8 +313,10 @@ void KeyFrame::UpdateConnections()
         if(pMP->isBad())
             continue;
 
+        //先获取到所有观测到该地图点的关键帧
         map<KeyFrame*,size_t> observations = pMP->GetObservations();
-
+        
+        //遍历共视关键帧 并计数该帧与当前帧共识地图点数量 
         for(map<KeyFrame*,size_t>::iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
         {
             if(mit->first->mnId==mnId)
@@ -327,10 +333,12 @@ void KeyFrame::UpdateConnections()
     //In case no keyframe counter is over threshold add the one with maximum counter
     int nmax=0;
     KeyFrame* pKFmax=NULL;
-    int th = 15;
+    //关键帧 筛选阈值 (共视的关键点数量)
+    int th = 30;// 15
 
     vector<pair<int,KeyFrame*> > vPairs;
     vPairs.reserve(KFcounter.size());
+    //遍历所有有计数 的关键帧
     for(map<KeyFrame*,int>::iterator mit=KFcounter.begin(), mend=KFcounter.end(); mit!=mend; mit++)
     {
         if(mit->second>nmax)
@@ -343,10 +351,16 @@ void KeyFrame::UpdateConnections()
             vPairs.push_back(make_pair(mit->second,mit->first));
             (mit->first)->AddConnection(this,mit->second);
         }
+        else
+        {
+            cout << "没有共视 " << mit->second << endl;
+        }
+        
     }
 
     if(vPairs.empty())
-    {
+    {//如果没有没有一个满足阈值的关键帧存在,
+     //获取到共视关键点最多的一帧 作为关联帧
         vPairs.push_back(make_pair(nmax,pKFmax));
         pKFmax->AddConnection(this,nmax);
     }
@@ -359,7 +373,7 @@ void KeyFrame::UpdateConnections()
         lKFs.push_front(vPairs[i].second);
         lWs.push_front(vPairs[i].first);
     }
-
+    cout << this << "-----------> lfs " << lKFs.size() << endl;
     {
         unique_lock<mutex> lockCon(mMutexConnections);
 
@@ -629,7 +643,7 @@ cv::Mat KeyFrame::UnprojectStereo(int i)
     else
         return cv::Mat();
 }
-
+//评估当前场景点深度
 float KeyFrame::ComputeSceneMedianDepth(const int q)
 {
     vector<MapPoint*> vpMapPoints;
@@ -651,14 +665,16 @@ float KeyFrame::ComputeSceneMedianDepth(const int q)
         if(mvpMapPoints[i])
         {
             MapPoint* pMP = mvpMapPoints[i];
+            //获取每个地图点的世界坐标位置
             cv::Mat x3Dw = pMP->GetWorldPos();
+            //获取地图点在当前帧 Z轴位置
             float z = Rcw2.dot(x3Dw)+zcw;
             vDepths.push_back(z);
         }
     }
 
     sort(vDepths.begin(),vDepths.end());
-
+    //排序取中值    
     return vDepths[(vDepths.size()-1)/q];
 }
 

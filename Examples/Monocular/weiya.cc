@@ -34,15 +34,16 @@ using namespace std;
 
 
 
+
 void LoadImages(const string &strSequence, vector<string> &vstrImageFilenames,
                 vector<double> &vTimestamps);
 
 int main(int argc, char **argv)
 {
 
-    const string imgpath = "/media/navinfo/Bak/Datas/@@1002-0001-190828-00/Output/gray";
-    const string vocpath = "/media/navinfo/Work/GitHub/ORB_SLAM2/Vocabulary/ORBvoc.txt";
-    const string cfgpath = "/media/navinfo/Work/GitHub/ORB_SLAM2/Examples/Monocular/weiya.yaml";
+    const string imgpath = "/media/tu/Work/Datas/@@1002-0001-191122-03/gray";
+    const string vocpath = "/media/tu/Work/GitHub/OrbSlamForAdas/Vocabulary/ORBvoc.txt";
+    const string cfgpath = "/media/tu/Work/GitHub/OrbSlamForAdas/Examples/Monocular/weiya.yaml";
 
     printf("%s\n",imgpath.c_str());
     printf("%s\n",vocpath.c_str());
@@ -68,7 +69,7 @@ int main(int argc, char **argv)
 
     // Main loop
     cv::Mat im;
-    for(int ni = 1757; ni<nImages; ni++)
+    for(int ni = 1545; ni<nImages; ni++)
     {
         size_t len = vstrImageFilenames[ni].size() - 12;
         cout << "read " << vstrImageFilenames[ni].substr(len).c_str() << endl;
@@ -108,8 +109,9 @@ int main(int argc, char **argv)
         else if(ni>0)
             T = tframe-vTimestamps[ni-1];
 
-        if(ttrack<T)
-            usleep((T-ttrack)*1e6);
+        // if(ttrack<T)
+        //     usleep((T-ttrack)*1e6);
+        // usleep(1.5e6);
     }
 
     // Stop all threads

@@ -261,11 +261,17 @@ cv::Mat Tracking::GrabImageMonocular(const cv::Mat &im, const double &timestamp)
 
     Track();
 
+    mpMapDrawer->Print();
+
     return mCurrentFrame.mTcw.clone();
 }
 
 void Tracking::Track()
 {
+    while(!mpLocalMapper->AcceptKeyFrames())
+    {
+        usleep(500);
+    }
     if(mState==NO_IMAGES_YET)
     {
         mState = NOT_INITIALIZED;
@@ -710,6 +716,7 @@ void Tracking::CreateInitialMapMonocular()
     // Set median depth to 1
     float medianDepth = pKFini->ComputeSceneMedianDepth(2);
 
+    cout << "mediadepath is " << medianDepth << endl;
     cv::Mat tmp = pKFcur->GetPose().col(3);
 
     //add by tu  初始化第二帧距离第一帧位置
@@ -963,7 +970,7 @@ bool Tracking::TrackWithMotionModel()
         mbVO = nmatchesMap<10;
         return nmatches>20;
     }
-    cout << "track with motion count : " << nmatchesMap << endl;
+    // cout << "track with motion count : " << nmatchesMap << endl;
     return nmatchesMap >= 10;
 }
 

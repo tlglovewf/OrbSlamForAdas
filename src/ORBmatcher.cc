@@ -666,6 +666,7 @@ int ORBmatcher::SearchForTriangulation(KeyFrame *pKF1, KeyFrame *pKF2, cv::Mat F
     cv::Mat Cw = pKF1->GetCameraCenter();
     cv::Mat R2w = pKF2->GetRotation();
     cv::Mat t2w = pKF2->GetTranslation();
+    //pkf2 在pkf1坐标系中的坐标     
     cv::Mat C2 = R2w*Cw+t2w;
     const float invz = 1.0f/C2.at<float>(2);
     const float ex =pKF2->fx*C2.at<float>(0)*invz+pKF2->cx;
@@ -824,8 +825,10 @@ int ORBmatcher::SearchForTriangulation(KeyFrame *pKF1, KeyFrame *pKF2, cv::Mat F
     return nmatches;
 }
 
+//th default value is 3.0
 int ORBmatcher::Fuse(KeyFrame *pKF, const vector<MapPoint *> &vpMapPoints, const float th)
 {
+    //当前帧率 旋转与平移
     cv::Mat Rcw = pKF->GetRotation();
     cv::Mat tcw = pKF->GetTranslation();
 
@@ -833,7 +836,7 @@ int ORBmatcher::Fuse(KeyFrame *pKF, const vector<MapPoint *> &vpMapPoints, const
     const float &fy = pKF->fy;
     const float &cx = pKF->cx;
     const float &cy = pKF->cy;
-    const float &bf = pKF->mbf;
+    const float &bf = pKF->mbf; 
 
     cv::Mat Ow = pKF->GetCameraCenter();
 
@@ -847,17 +850,18 @@ int ORBmatcher::Fuse(KeyFrame *pKF, const vector<MapPoint *> &vpMapPoints, const
 
         if(!pMP)
             continue;
-
+        //若为坏帧 或者 地图点在帧里 返回
         if(pMP->isBad() || pMP->IsInKeyFrame(pKF))
             continue;
 
         cv::Mat p3Dw = pMP->GetWorldPos();
+        //计算查询地图点在查询帧中的位置
         cv::Mat p3Dc = Rcw*p3Dw + tcw;
 
         // Depth must be positive
         if(p3Dc.at<float>(2)<0.0f)
             continue;
-
+        //相机坐标 ->  像素坐标
         const float invz = 1/p3Dc.at<float>(2);
         const float x = p3Dc.at<float>(0)*invz;
         const float y = p3Dc.at<float>(1)*invz;
@@ -874,6 +878,7 @@ int ORBmatcher::Fuse(KeyFrame *pKF, const vector<MapPoint *> &vpMapPoints, const
         const float maxDistance = pMP->GetMaxDistanceInvariance();
         const float minDistance = pMP->GetMinDistanceInvariance();
         cv::Mat PO = p3Dw-Ow;
+        //查询帧 到 当前帧的空间距离
         const float dist3D = cv::norm(PO);
 
         // Depth must be inside the scale pyramid of the image
@@ -882,7 +887,7 @@ int ORBmatcher::Fuse(KeyFrame *pKF, const vector<MapPoint *> &vpMapPoints, const
 
         // Viewing angle must be less than 60 deg
         cv::Mat Pn = pMP->GetNormal();
-
+        //观察到的地图点 夹角必须小于60度
         if(PO.dot(Pn)<0.5*dist3D)
             continue;
 
@@ -953,11 +958,13 @@ int ORBmatcher::Fuse(KeyFrame *pKF, const vector<MapPoint *> &vpMapPoints, const
         // If there is already a MapPoint replace otherwise add new measurement
         if(bestDist<=TH_LOW)
         {
+            //获取到此点最佳的匹配点
             MapPoint* pMPinKF = pKF->GetMapPoint(bestIdx);
             if(pMPinKF)
             {
                 if(!pMPinKF->isBad())
                 {
+                    //用被观察到的帧的地图点替换 被观察到少的帧的地图点
                     if(pMPinKF->Observations()>pMP->Observations())
                         pMP->Replace(pMPinKF);
                     else
@@ -965,7 +972,7 @@ int ORBmatcher::Fuse(KeyFrame *pKF, const vector<MapPoint *> &vpMapPoints, const
                 }
             }
             else
-            {
+            {//若查询到的地图点 不存在 则新增关联
                 pMP->AddObservation(pKF,bestIdx);
                 pKF->AddMapPoint(pMP,bestIdx);
             }

@@ -94,7 +94,8 @@ KeyFrame* MapPoint::GetReferenceKeyFrame()
     unique_lock<mutex> lock(mMutexFeatures);
     return mpRefKF;
 }
-
+//添加关键帧
+//pKF 关键帧   idx 点序号
 void MapPoint::AddObservation(KeyFrame* pKF, size_t idx)
 {
     unique_lock<mutex> lock(mMutexFeatures);
@@ -236,9 +237,12 @@ void MapPoint::IncreaseFound(int n)
 float MapPoint::GetFoundRatio()
 {
     unique_lock<mutex> lock(mMutexFeatures);
+    //mnfound 共视关键帧数量
+    //mnvisible 在幀可視范围的点数量
     return static_cast<float>(mnFound)/mnVisible;
 }
 
+//获取观察到此地图点所有帧中分数最高的描述子（其描述子距离其他所有描述子的距离最短）
 void MapPoint::ComputeDistinctiveDescriptors()
 {
     // Retrieve all observed descriptors
@@ -326,7 +330,7 @@ bool MapPoint::IsInKeyFrame(KeyFrame *pKF)
     unique_lock<mutex> lock(mMutexFeatures);
     return (mObservations.count(pKF));
 }
-
+//更新向量和方向
 void MapPoint::UpdateNormalAndDepth()
 {
     map<KeyFrame*,size_t> observations;
@@ -351,7 +355,9 @@ void MapPoint::UpdateNormalAndDepth()
     {
         KeyFrame* pKF = mit->first;
         cv::Mat Owi = pKF->GetCameraCenter();
+        //帧指向地图点的方向
         cv::Mat normali = mWorldPos - Owi;
+        //方向归一化求和
         normal = normal + normali/cv::norm(normali);
         n++;
     }
@@ -366,6 +372,7 @@ void MapPoint::UpdateNormalAndDepth()
         unique_lock<mutex> lock3(mMutexPos);
         mfMaxDistance = dist*levelScaleFactor;
         mfMinDistance = mfMaxDistance/pRefKF->mvScaleFactors[nLevels-1];
+        //处以所有关键帧的数量 就是平均向量
         mNormalVector = normal/n;
     }
 }
