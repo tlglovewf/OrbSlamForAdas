@@ -28,7 +28,7 @@
 
 namespace ORB_SLAM2
 {
-
+const int s_NearFrame = 10;
 LocalMapping::LocalMapping(Map *pMap, const float bMonocular):
     mbMonocular(bMonocular), mbResetRequested(false), mbFinishRequested(false), mbFinished(true), mpMap(pMap),
     mbAbortBA(false), mbStopped(false), mbStopRequested(false), mbNotStop(false), mbAcceptKeyFrames(true)
@@ -87,9 +87,9 @@ void LocalMapping::Run()
                 KeyFrameCulling();
             }
             std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
-            cout << "local mapping cost " << std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count() << "s" << endl;
+            // cout << "local mapping cost " << std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count() << "s" << endl;
             isHandled = false;
-            //mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
+            mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
         }
         else if(Stop())
         {
@@ -214,7 +214,7 @@ void LocalMapping::CreateNewMapPoints()
     // Retrieve neighbor keyframes in covisibility graph
     int nn = 10;
     if(mbMonocular)
-        nn=20;
+        nn= s_NearFrame;
     const vector<KeyFrame*> vpNeighKFs = mpCurrentKeyFrame->GetBestCovisibilityKeyFrames(nn);
 
     ORBmatcher matcher(0.6,false);
@@ -234,7 +234,7 @@ void LocalMapping::CreateNewMapPoints()
     const float &invfx1 = mpCurrentKeyFrame->invfx;
     const float &invfy1 = mpCurrentKeyFrame->invfy;
 
-    const float ratioFactor = 1.5f*mpCurrentKeyFrame->mfScaleFactor;
+    const float ratioFactor = mpCurrentKeyFrame->mfScaleFactor;
 
     int nnew=0;
 
@@ -261,8 +261,8 @@ void LocalMapping::CreateNewMapPoints()
         {
             const float medianDepthKF2 = pKF2->ComputeSceneMedianDepth(2);
             const float ratioBaselineDepth = baseline/medianDepthKF2;
-            //如果地图深度太大(点都特别远) 剔除
-            if(ratioBaselineDepth<0.01)
+            //如果地图深度太大(点都特别远) 剔除   1/60m
+            if(ratioBaselineDepth<0.0167)
                 continue;
         }
 
@@ -273,7 +273,6 @@ void LocalMapping::CreateNewMapPoints()
         vector<pair<size_t,size_t> > vMatchedIndices;
         //匹配curfm 和 pkf2 满足极线约束的匹配对
         matcher.SearchForTriangulation(mpCurrentKeyFrame,pKF2,F12,vMatchedIndices,false);
-
         cv::Mat Rcw2 = pKF2->GetRotation();
         cv::Mat Rwc2 = Rcw2.t();
         cv::Mat tcw2 = pKF2->GetTranslation();
@@ -457,7 +456,7 @@ void LocalMapping::CreateNewMapPoints()
             nnew++;
         }
     }
-    cout << "create new points : " << nnew << endl;
+    // cout << "create new points : " << nnew << endl;
 }
 
 void LocalMapping::SearchInNeighbors()
@@ -465,7 +464,7 @@ void LocalMapping::SearchInNeighbors()
     // Retrieve neighbor keyframes
     int nn = 10;
     if(mbMonocular)
-        nn=20;
+        nn = 20;
     //获取共视关键帧中 前面的nn帧
     const vector<KeyFrame*> vpNeighKFs = mpCurrentKeyFrame->GetBestCovisibilityKeyFrames(nn);
     //判定目标帧容器
@@ -495,12 +494,13 @@ void LocalMapping::SearchInNeighbors()
     // Search matches by projection from current KF in target KFs
     ORBmatcher matcher;
     vector<MapPoint*> vpMapPointMatches = mpCurrentKeyFrame->GetMapPointMatches();
+    const float fuse_pixel = 12.0;
     //遍历目标帧， 并判断当前帧的地图点和目标帧 的融合情况
     for(vector<KeyFrame*>::iterator vit=vpTargetKFs.begin(), vend=vpTargetKFs.end(); vit!=vend; vit++)
     {
         KeyFrame* pKFi = *vit;
 
-       matcher.Fuse(pKFi,vpMapPointMatches,12.0f);
+       matcher.Fuse(pKFi,vpMapPointMatches,fuse_pixel);
     }
 
     // Search matches by projection from target KFs in current KF
@@ -525,7 +525,7 @@ void LocalMapping::SearchInNeighbors()
         }
     }
     //融合候选关键帧
-    matcher.Fuse(mpCurrentKeyFrame,vpFuseCandidates);
+    matcher.Fuse(mpCurrentKeyFrame,vpFuseCandidates,fuse_pixel);
 
 
     // Update points

@@ -315,7 +315,7 @@ void KeyFrame::UpdateConnections()
 
         //先获取到所有观测到该地图点的关键帧
         map<KeyFrame*,size_t> observations = pMP->GetObservations();
-        
+
         //遍历共视关键帧 并计数该帧与当前帧共识地图点数量 
         for(map<KeyFrame*,size_t>::iterator mit=observations.begin(), mend=observations.end(); mit!=mend; mit++)
         {
@@ -334,7 +334,7 @@ void KeyFrame::UpdateConnections()
     int nmax=0;
     KeyFrame* pKFmax=NULL;
     //关键帧 筛选阈值 (共视的关键点数量)
-    int th = 30;// 15
+    int th = 15;
 
     vector<pair<int,KeyFrame*> > vPairs;
     vPairs.reserve(KFcounter.size());
@@ -350,12 +350,7 @@ void KeyFrame::UpdateConnections()
         {
             vPairs.push_back(make_pair(mit->second,mit->first));
             (mit->first)->AddConnection(this,mit->second);
-        }
-        else
-        {
-            cout << "没有共视 " << mit->second << endl;
-        }
-        
+        }   
     }
 
     if(vPairs.empty())
@@ -370,10 +365,10 @@ void KeyFrame::UpdateConnections()
     list<int> lWs;
     for(size_t i=0; i<vPairs.size();i++)
     {
-        lKFs.push_front(vPairs[i].second);
+        lKFs.push_front(vPairs[i].second); 
         lWs.push_front(vPairs[i].first);
     }
-    cout << this << "-----------> lfs " << lKFs.size() << endl;
+    // cout << nmax << "-----------> lfs " << lKFs.size() << endl;
     {
         unique_lock<mutex> lockCon(mMutexConnections);
 
@@ -388,7 +383,6 @@ void KeyFrame::UpdateConnections()
             mpParent->AddChild(this);
             mbFirstConnection = false;
         }
-
     }
 }
 

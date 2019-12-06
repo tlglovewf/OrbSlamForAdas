@@ -41,7 +41,8 @@ void LoadImages(const string &strSequence, vector<string> &vstrImageFilenames,
 int main(int argc, char **argv)
 {
 
-    const string imgpath = "/media/tu/Work/Datas/@@1002-0001-191122-03/gray";
+    // const string imgpath = "/media/tu/Work/Datas/@@1002-0001-191122-03/gray";
+    const string imgpath = "/media/tu/Work/Datas/@@1002-0001-190828-00/Output/gray";
     const string vocpath = "/media/tu/Work/GitHub/OrbSlamForAdas/Vocabulary/ORBvoc.txt";
     const string cfgpath = "/media/tu/Work/GitHub/OrbSlamForAdas/Examples/Monocular/weiya.yaml";
 
@@ -69,7 +70,7 @@ int main(int argc, char **argv)
 
     // Main loop
     cv::Mat im;
-    for(int ni = 1545; ni<nImages; ni++)
+    for(int ni = 300; ni<nImages; ni++)
     {
         size_t len = vstrImageFilenames[ni].size() - 12;
         cout << "read " << vstrImageFilenames[ni].substr(len).c_str() << endl;

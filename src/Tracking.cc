@@ -270,7 +270,7 @@ void Tracking::Track()
 {
     while(!mpLocalMapper->AcceptKeyFrames())
     {
-        usleep(500);
+        usleep(100);
     }
     if(mState==NO_IMAGES_YET)
     {
@@ -481,7 +481,8 @@ void Tracking::Track()
             //if(mpMap->KeyFramesInMap()<=5)
             {
                 cout << "Track lost soon after initialisation, reseting..." << endl;
-                mpSystem->Reset();
+                // mpSystem->Reset();
+                // pause();
                 return;
             }
         }
@@ -603,8 +604,8 @@ void Tracking::MonocularInitialization()
         }
 
         // Find correspondences
-        ORBmatcher matcher(0.9,true);
-        int nmatches = matcher.SearchForInitialization(mInitialFrame,mCurrentFrame,mvbPrevMatched,mvIniMatches,500);
+        ORBmatcher matcher(0.8,true);
+        int nmatches = matcher.SearchForInitialization(mInitialFrame,mCurrentFrame,mvbPrevMatched,mvIniMatches,300);
 
         // Check if there are enough correspondences
         if(nmatches<100)
@@ -620,6 +621,7 @@ void Tracking::MonocularInitialization()
         vector<cv::DMatch> matches;
         if(mpInitializer->Initialize(mCurrentFrame, mvIniMatches, Rcw, tcw, mvIniP3D, vbTriangulated))
         {
+            cout << "initial successfully. t value is : " << tcw << endl;
             for(size_t i=0, iend=mvIniMatches.size(); i<iend;i++)
             {
                 if(mvIniMatches[i]>=0 && !vbTriangulated[i])
@@ -716,15 +718,13 @@ void Tracking::CreateInitialMapMonocular()
     // Set median depth to 1
     float medianDepth = pKFini->ComputeSceneMedianDepth(2);
 
-    cout << "mediadepath is " << medianDepth << endl;
+    cout << "median depath is " << medianDepth << endl;
     cv::Mat tmp = pKFcur->GetPose().col(3);
-
-    //add by tu  初始化第二帧距离第一帧位置
+   //add by tu  初始化第二帧距离第一帧位置
     float len = sqrt(tmp.at<float>(0) * tmp.at<float>(0) + 
-                tmp.at<float>(1) * tmp.at<float>(1) +
-                tmp.at<float>(2) * tmp.at<float>(2));
-    
-    float invMedianDepth = 1.0f / len ;// 1.0f/medianDepth;
+                     tmp.at<float>(1) * tmp.at<float>(1) +
+                     tmp.at<float>(2) * tmp.at<float>(2));
+    float invMedianDepth = 1.0f / len ;
 
     if(medianDepth<0 || pKFcur->TrackedMapPoints(1)<50)
     {

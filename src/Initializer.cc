@@ -718,7 +718,7 @@ bool Initializer::ReconstructH(vector<bool> &vbMatchesInliers, cv::Mat &H21, cv:
     }
 
 
-    if(secondBestGood<0.75*bestGood && bestParallax>=minParallax && bestGood>minTriangulated && bestGood>0.9*N)
+    //if(secondBestGood<0.75*bestGood && bestParallax>=minParallax && bestGood>minTriangulated && bestGood>0.9*N)
     {
         vR[bestSolutionIdx].copyTo(R21);
         vt[bestSolutionIdx].copyTo(t21);
@@ -799,6 +799,7 @@ int Initializer::CheckRT(const cv::Mat &R, const cv::Mat &t, const vector<cv::Ke
                        const vector<Match> &vMatches12, vector<bool> &vbMatchesInliers,
                        const cv::Mat &K, vector<cv::Point3f> &vP3D, float th2, vector<bool> &vbGood, float &parallax)
 {
+    const float thparallax = 0.99998;
     // Calibration parameters
     const float fx = K.at<float>(0,0);
     const float fy = K.at<float>(1,1);
@@ -850,17 +851,17 @@ int Initializer::CheckRT(const cv::Mat &R, const cv::Mat &t, const vector<cv::Ke
 
         cv::Mat normal2 = p3dC1 - O2;
         float dist2 = cv::norm(normal2);
-
+        //地图点与两帧中心点 向量夹角cos
         float cosParallax = normal1.dot(normal2)/(dist1*dist2);
 
         // Check depth in front of first camera (only if enough parallax, as "infinite" points can easily go to negative depth)
-        if(p3dC1.at<float>(2)<=0 && cosParallax<0.99998)
+        if(p3dC1.at<float>(2)<=0 && cosParallax<thparallax)
             continue;
 
         // Check depth in front of second camera (only if enough parallax, as "infinite" points can easily go to negative depth)
         cv::Mat p3dC2 = R*p3dC1+t;
 
-        if(p3dC2.at<float>(2)<=0 && cosParallax<0.99998)
+        if(p3dC2.at<float>(2)<=0 && cosParallax<thparallax)
             continue;
 
         // Check reprojection error in first image
@@ -889,7 +890,7 @@ int Initializer::CheckRT(const cv::Mat &R, const cv::Mat &t, const vector<cv::Ke
         vP3D[vMatches12[i].first] = cv::Point3f(p3dC1.at<float>(0),p3dC1.at<float>(1),p3dC1.at<float>(2));
         nGood++;
 
-        if(cosParallax<0.99998)
+        if(cosParallax<thparallax)
             vbGood[vMatches12[i].first]=true;
     }
 

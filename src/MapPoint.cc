@@ -342,7 +342,7 @@ void MapPoint::UpdateNormalAndDepth()
         if(mbBad)
             return;
         observations=mObservations;
-        pRefKF=mpRefKF;
+        pRefKF=mpRefKF;//ref kf is the first frame
         Pos = mWorldPos.clone();
     }
 
@@ -361,14 +361,14 @@ void MapPoint::UpdateNormalAndDepth()
         normal = normal + normali/cv::norm(normali);
         n++;
     }
-
+    //地图点距离第一帧观测到该点的距离
     cv::Mat PC = Pos - pRefKF->GetCameraCenter();
     const float dist = cv::norm(PC);
     const int level = pRefKF->mvKeysUn[observations[pRefKF]].octave;
     const float levelScaleFactor =  pRefKF->mvScaleFactors[level];
     const int nLevels = pRefKF->mnScaleLevels;
 
-    {
+    {//max min 分别表示第一帧观测到该点的顶层距离 和最底层缩放距离
         unique_lock<mutex> lock3(mMutexPos);
         mfMaxDistance = dist*levelScaleFactor;
         mfMinDistance = mfMaxDistance/pRefKF->mvScaleFactors[nLevels-1];
