@@ -48,9 +48,13 @@ public:
     // Draw last processed frame.
     cv::Mat DrawFrame();
 
-protected:
-
     void DrawTextInfo(cv::Mat &im, int nState, cv::Mat &imText);
+
+    int getState()const
+    {
+        return mState;
+    }
+protected:
 
     // Info of the frame to be drawn
     cv::Mat mIm;

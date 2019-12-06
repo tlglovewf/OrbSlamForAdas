@@ -75,7 +75,7 @@ void Viewer::Run()
 
     // Define Camera Render Object (for view / scene browsing)
     pangolin::OpenGlRenderState s_cam(
-                pangolin::ProjectionMatrix(1024,768,mViewpointF,mViewpointF,512,389,0.1,1000),
+                pangolin::ProjectionMatrix(1024,768,mViewpointF,mViewpointF,512,389,0.1,5000),
                 pangolin::ModelViewLookAt(mViewpointX,mViewpointY,mViewpointZ, 0,0,0,0.0,-1.0, 0.0)
                 );
 
@@ -137,8 +137,10 @@ void Viewer::Run()
         cv::Mat im = mpFrameDrawer->DrawFrame();
 
         cv::resize(im,im,cv::Size(im.cols >> 2,im.rows >> 2));
+        cv::Mat displayImg;
+        mpFrameDrawer->DrawTextInfo(im,mpFrameDrawer->getState(),displayImg);
 
-        cv::imshow("ORB-SLAM2: Current Frame",im);
+        cv::imshow("ORB-SLAM2: Current Frame",displayImg);
 
         cv::waitKey(mT);
 

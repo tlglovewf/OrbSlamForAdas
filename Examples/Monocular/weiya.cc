@@ -70,7 +70,7 @@ int main(int argc, char **argv)
 
     // Main loop
     cv::Mat im;
-    for(int ni = 300; ni<nImages; ni++)
+    for(int ni = 200; ni<nImages; ni++)
     {
         size_t len = vstrImageFilenames[ni].size() - 12;
         cout << "read " << vstrImageFilenames[ni].substr(len).c_str() << endl;
