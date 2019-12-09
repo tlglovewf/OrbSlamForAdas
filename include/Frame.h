@@ -98,7 +98,18 @@ public:
     // Backprojects a keypoint (if stereo/depth info available) into 3D world coordinates.
     cv::Mat UnprojectStereo(const int &i);
 
+    // Set Name
+    void SetName(const std::string& name)
+    {
+        mName = name;
+    }
+    //Get Name
+    std::string GetName()const
+    {
+        return mName;
+    }
 public:
+    std::string   mName;
     cv::Mat       mImg;
     // Vocabulary used for relocalization.
     ORBVocabulary* mpORBvocabulary;

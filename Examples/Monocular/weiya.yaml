@@ -6,6 +6,7 @@
 Sys.ImgPath: "/media/tu/Work/Datas/@@1002-0001-190828-00/Output/gray/"
 Sys.PstPath: "/media/tu/Work/Datas/@@1002-0001-190828-00/Output/gray/pst.txt"
 Sys.VocPath: "/media/tu/Work/GitHub/OrbSlamForAdas/Vocabulary/ORBvoc.txt"
+Sys.ImuPath: "/media/tu/Work/Datas/@@1002-0001-190828-00/Output/gray/imu.txt"
 
 Sys.BeginNo: 300
 Sys.EndNo:   400
@@ -17,6 +18,7 @@ Sys.EndNo:   400
 # Camera calibration and distortion parameters (OpenCV) 
 Camera.fx: 2.3472457864004355e+03
 Camera.fy: 2.3472457864004355e+03
+
 Camera.cx: 2.0462880554199219e+03
 Camera.cy: 1.0890160064697266e+03
 
@@ -57,7 +59,7 @@ ORBextractor.minThFAST: 7
 Viewer.KeyFrameSize: 0.5
 Viewer.KeyFrameLineWidth: 1
 Viewer.GraphLineWidth: 1
-Viewer.PointSize:2
+Viewer.PointSize: 2
 Viewer.CameraSize: 1.0
 Viewer.CameraLineWidth: 8
 Viewer.ViewpointX: 0

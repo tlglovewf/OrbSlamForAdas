@@ -162,9 +162,11 @@ void FrameDrawer::DrawTextInfo(cv::Mat &im, int nState, cv::Mat &imText)
             s << "LOCALIZATION | ";
         int nKFs = mpMap->KeyFramesInMap();
         int nMPs = mpMap->MapPointsInMap();
+        s << "Pic: " << mCurPicName.c_str() << " ";
         s << "KFs: " << nKFs << ", MPs: " << nMPs << ", Matches: " << mnTracked;
         if(mnTrackedVO>0)
             s << ", + VO matches: " << mnTrackedVO;
+        
     }
     else if(nState==Tracking::LOST)
     {
@@ -194,7 +196,7 @@ void FrameDrawer::Update(Tracking *pTracker)
     mvbVO = vector<bool>(N,false);
     mvbMap = vector<bool>(N,false);
     mbOnlyTracking = pTracker->mbOnlyTracking;
-
+    mCurPicName = pTracker->mCurrentFrame.GetName();
 
     if(pTracker->mLastProcessedState==Tracking::NOT_INITIALIZED)
     {

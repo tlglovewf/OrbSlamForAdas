@@ -51,12 +51,14 @@ Viewer::Viewer(System* pSystem, FrameDrawer *pFrameDrawer, MapDrawer *pMapDrawer
     mViewpointF = fSettings["Viewer.ViewpointF"];
 }
 
+const int WinWidth = 1024;
+const int WinHeight= 768;
 void Viewer::Run()
 {
     mbFinished = false;
     mbStopped = false;
 
-    pangolin::CreateWindowAndBind("ORB-SLAM2: Map Viewer",1024,768);
+    pangolin::CreateWindowAndBind("Map Viewer",WinWidth,WinHeight);
 
     // 3D Mouse handler requires depth testing to be enabled
     glEnable(GL_DEPTH_TEST);
@@ -65,29 +67,32 @@ void Viewer::Run()
     glEnable (GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    pangolin::CreatePanel("menu").SetBounds(0.0,1.0,0.0,pangolin::Attach::Pix(175));
+    // pangolin::CreatePanel("menu").SetBounds(0.0,1.0,0.0,pangolin::Attach::Pix(175));
+    pangolin::View &menuPanel = pangolin::CreatePanel("menu").
+                                SetBounds(pangolin::Attach::Pix(200),pangolin::Attach::Pix(50),0.0,pangolin::Attach::Pix(175));
+ 
     pangolin::Var<bool> menuFollowCamera("menu.Follow Camera",true,true);
     pangolin::Var<bool> menuShowPoints("menu.Show Points",true,true);
     pangolin::Var<bool> menuShowKeyFrames("menu.Show KeyFrames",true,true);
     pangolin::Var<bool> menuShowGraph("menu.Show Graph",true,true);
-    pangolin::Var<bool> menuLocalizationMode("menu.Localization Mode",false,true);
+    // pangolin::Var<bool> menuLocalizationMode("menu.Localization Mode",false,true);
     pangolin::Var<bool> menuReset("menu.Reset",false,false);
 
     // Define Camera Render Object (for view / scene browsing)
     pangolin::OpenGlRenderState s_cam(
-                pangolin::ProjectionMatrix(1024,768,mViewpointF,mViewpointF,512,389,0.1,5000),
+                pangolin::ProjectionMatrix(WinWidth,WinHeight,mViewpointF,mViewpointF,(WinWidth >> 1),(WinHeight >> 1),0.1,5000),
                 pangolin::ModelViewLookAt(mViewpointX,mViewpointY,mViewpointZ, 0,0,0,0.0,-1.0, 0.0)
                 );
 
     // Add named OpenGL viewport to window and provide 3D Handler
     pangolin::View& d_cam = pangolin::CreateDisplay()
-            .SetBounds(0.0, 1.0, pangolin::Attach::Pix(175), 1.0, -1024.0f/768.0f)
+            .SetBounds(0.0, 1.0, 0, 1.0, -(float)WinWidth/WinHeight)
             .SetHandler(new pangolin::Handler3D(s_cam));
 
     pangolin::OpenGlMatrix Twc;
     Twc.SetIdentity();
 
-    cv::namedWindow("ORB-SLAM2: Current Frame");
+    cv::namedWindow("Current Frame");
 
     bool bFollow = true;
     bool bLocalizationMode = false;
@@ -113,16 +118,16 @@ void Viewer::Run()
             bFollow = false;
         }
 
-        if(menuLocalizationMode && !bLocalizationMode)
-        {
-            mpSystem->ActivateLocalizationMode();
-            bLocalizationMode = true;
-        }
-        else if(!menuLocalizationMode && bLocalizationMode)
-        {
-            mpSystem->DeactivateLocalizationMode();
-            bLocalizationMode = false;
-        }
+        // if(menuLocalizationMode && !bLocalizationMode)
+        // {
+        //     mpSystem->ActivateLocalizationMode();
+        //     bLocalizationMode = true;
+        // }
+        // else if(!menuLocalizationMode && bLocalizationMode)
+        // {
+        //     mpSystem->DeactivateLocalizationMode();
+        //     bLocalizationMode = false;
+        // }
 
         d_cam.Activate(s_cam);
         glClearColor(1.0f,1.0f,1.0f,1.0f);
@@ -140,7 +145,7 @@ void Viewer::Run()
         cv::Mat displayImg;
         mpFrameDrawer->DrawTextInfo(im,mpFrameDrawer->getState(),displayImg);
 
-        cv::imshow("ORB-SLAM2: Current Frame",displayImg);
+        cv::imshow("Current Frame",displayImg);
 
         cv::waitKey(mT);
 
@@ -149,7 +154,7 @@ void Viewer::Run()
             menuShowGraph = true;
             menuShowKeyFrames = true;
             menuShowPoints = true;
-            menuLocalizationMode = false;
+            // menuLocalizationMode = false;
             if(bLocalizationMode)
                 mpSystem->DeactivateLocalizationMode();
             bLocalizationMode = false;

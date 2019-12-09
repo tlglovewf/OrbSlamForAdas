@@ -59,6 +59,7 @@ protected:
     // Info of the frame to be drawn
     cv::Mat mIm;
     int N;
+    std::string          mCurPicName;
     vector<cv::KeyPoint> mvCurrentKeys;
     vector<bool> mvbMap, mvbVO;
     bool mbOnlyTracking;

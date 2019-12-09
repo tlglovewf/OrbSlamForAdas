@@ -72,7 +72,8 @@ int main(int argc, char **argv)
     for(; it != ed; ++it)
     {
         size_t len = it->first.size() - 12;
-        cout << "read " << it->first.substr(len).c_str() << endl;
+        std::string picname = it->first.substr(len,6).c_str();
+        cout << "read " << picname.c_str() << endl;
         // Read image from file
         const string imgpath = ConfigParam::_ImgPath + it->first;
         im = cv::imread(imgpath,CV_LOAD_IMAGE_UNCHANGED);
@@ -91,7 +92,7 @@ int main(int argc, char **argv)
 #endif
 
         // Pass the image to the SLAM system
-        SLAM.TrackMonocular(im,tframe);
+        SLAM.TrackMonocular(im,picname,tframe);
 
 #ifdef COMPILEDWITHC11
         std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();
