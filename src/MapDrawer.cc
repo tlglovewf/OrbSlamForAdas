@@ -181,7 +181,7 @@ void MapDrawer::Print()
     // if(mCameraPose.empty())
     //     return;
     // cv::Mat twc = -mCameraPose.rowRange(0,3).colRange(0,3).t()*mCameraPose.rowRange(0,3).col(3);
-    // cout << "new frame pos " << twc.at<float>(2) << endl;
+    // cout << "esti " << twc.at<float>(2) << endl;
 }
 
 void MapDrawer::DrawCurrentCamera(pangolin::OpenGlMatrix &Twc)

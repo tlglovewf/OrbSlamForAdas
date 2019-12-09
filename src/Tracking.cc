@@ -621,7 +621,7 @@ void Tracking::MonocularInitialization()
         vector<cv::DMatch> matches;
         if(mpInitializer->Initialize(mCurrentFrame, mvIniMatches, Rcw, tcw, mvIniP3D, vbTriangulated))
         {
-            cout << "initial successfully. t value is : " << tcw << endl;
+            cout << endl << "initial successfully. t value is : " << tcw << endl;
             for(size_t i=0, iend=mvIniMatches.size(); i<iend;i++)
             {
                 if(mvIniMatches[i]>=0 && !vbTriangulated[i])

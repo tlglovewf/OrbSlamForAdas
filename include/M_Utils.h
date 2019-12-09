@@ -354,6 +354,26 @@ public:
 
 		return tmp.substr(index);
 	}
+
+    /* write real trace
+    */
+    static inline bool WriteRealTrace(ofstream &os,const BLHCoordinate &blh,const std::string &filename)
+    {
+        os.precision(15);
+        os << blh.latitude << "," << blh.longitude << "," << filename.c_str() << endl;
+        return true;
+    }
+
+    /* write estimate trace
+    */
+    static inline bool WriteEstTrace(ofstream &os,const BLHCoordinate &blh, const cv::Point3d &res, const std::string &filename)
+    {
+        os.precision(15); 
+        os << blh.latitude << "," << blh.longitude << "," << res.x << "," << res.y << "," << res.z <<
+            "," << filename.c_str() << endl;
+        return true;
+    }
+
 };
 
 //及时

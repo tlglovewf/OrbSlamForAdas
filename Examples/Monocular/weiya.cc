@@ -38,10 +38,18 @@ using namespace std;
 int main(int argc, char **argv)
 {
     const string cfgpath = "./weiya.yaml";
+    const string realpath = "/media/tu/Work/Datas/TracePath/real.txt";
+    const string estfpath = "/media/tu/Work/Datas/TracePath/est.txt";
+    std::ofstream fReal;
+    fReal.open(realpath);
+    std::ofstream fEst;
+    fEst.open(estfpath);
     ConfigParam config(cfgpath);
 
     vector<double> vTimestamps;
-     
+    Camera cam;
+    Ptr<IConfig> pCfg = new WeiYaConfig(ConfigParam::_InsPath,ConfigParam::_fBsPath);
+    pCfg->ReadConfig(cam);
     if(!M_DataManager::getSingleton()->LoadData(ConfigParam::_PstPath,
                                                 ConfigParam::_ImuPath))
     {
@@ -69,11 +77,13 @@ int main(int argc, char **argv)
  
     M_DataManager::getSingleton()->setIndicator(st_no);
     int index = 0;
+    PoseData origin  = it->second;
+    PoseData predata = it->second;
+    cv::Mat abspos = cv::Mat::eye(4,4,CV_64F);
     for(; it != ed; ++it)
     {
         size_t len = it->first.size() - 12;
         std::string picname = it->first.substr(len,6).c_str();
-        cout << "read " << picname.c_str() << endl;
         // Read image from file
         const string imgpath = ConfigParam::_ImgPath + it->first;
         im = cv::imread(imgpath,CV_LOAD_IMAGE_UNCHANGED);
@@ -90,7 +100,22 @@ int main(int argc, char **argv)
 #else
         std::chrono::monotonic_clock::time_point t1 = std::chrono::monotonic_clock::now();
 #endif
+        cv::Mat velcity = cv::Mat::eye(4,4,CV_64F);
+        if(0 != index)
+        {
+            // cv::Mat R,t;
 
+            // M_Untils::GetRtFromPose(predata,it->second,cam.RCam2Imu,cam.TCam2Imu,R,t);
+
+            // R.copyTo(velcity.rowRange(0,3).colRange(0,3));
+            // t.copyTo(velcity.rowRange(0,3).col(3));
+
+            // abspos = velcity * abspos;
+            // cv::Mat ptmt = -abspos.rowRange(0,3).colRange(0,3).t()*abspos.rowRange(0,3).col(3);
+            // cout << "real " << ptmt.at<double>(2) << endl;
+            // predata = it->second;
+        }
+        M_Untils::WriteRealTrace(fReal,it->second.pos,it->first);
         // Pass the image to the SLAM system
         SLAM.TrackMonocular(im,picname,tframe);
 
@@ -108,9 +133,12 @@ int main(int argc, char **argv)
         double T=0;
         if(index < nImages - 1)
             T = (it + 1)->second._t - tframe;
-        else if(index++ > 0)
+        else if(index > 0)
             T = tframe - (it - 1)->second._t;
-
+        else ;
+        
+        ++index;
+        
         if(ttrack<T)
             usleep((T-ttrack)*1e6);
         // usleep(1.5e6);
@@ -118,9 +146,26 @@ int main(int argc, char **argv)
 
     // Stop all threads
     SLAM.Shutdown();
-    cout << "Exe Successfully!" << endl;
-    cout << "Save the trace " << endl;
-   
+    cout << "Slam Program exe Successfully!" << endl;
 
+    std::vector<ORB_SLAM2::KeyFrame*> keyframes = SLAM.GetAllKeyFrames();
+    cout << "Begin saving estimate trace! " << keyframes.size() << endl;
+    for(int i = 0 ; i < keyframes.size() ; ++i)
+    {
+        cv::Mat pos = keyframes[i]->GetPose();
+        cv::Mat dpos;
+        pos.convertTo(dpos,CV_64F);
+        cv::Mat R = dpos.rowRange(0,3).colRange(0,3);
+        cv::Mat t = dpos.rowRange(0,3).col(3);
+        BLHCoordinate blh;
+
+        t = -R.t() * t;
+
+        M_Untils::CalcPoseFromRT(origin,Mat::eye(3,3,CV_64F),t,cam.RCam2Imu,cam.TCam2Imu,blh);
+        M_Untils::WriteEstTrace(fEst,blh,cv::Point3d(0,0,0),"");
+    }
+    cout << "Estimate trace write successfully!!! " << endl;
+    fReal.close();
+    fEst.close();
     return 0;
 }

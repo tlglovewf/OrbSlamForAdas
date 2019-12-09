@@ -73,13 +73,21 @@ public:
         cout << "img file path : " << _ImgPath.c_str() << endl;
         fSettings["Sys.ImuPath"] >> _ImuPath;
         cout << "imu file path : " << _ImuPath.c_str() << endl;
-    }
 
-    
+		fSettings["Camera.Ins"] >> _InsPath;
+		cout << "camera ins file path : " << _InsPath.c_str() << endl;
+		fSettings["Camera.Bs"]  >> _fBsPath;
+		cout << "camera bs  file path : " << _fBsPath.c_str() << endl;
+    }
+ 
     static std::string _PstPath;
     static std::string _ImgPath;
     static std::string _ImuPath;
     static std::string _VocPath;
+
+	static std::string _InsPath;
+	static std::string _fBsPath;
+
     static int         _BeginNo;
     static int         _EndNo;
 };

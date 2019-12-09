@@ -9,13 +9,16 @@ Sys.VocPath: "/media/tu/Work/GitHub/OrbSlamForAdas/Vocabulary/ORBvoc.txt"
 Sys.ImuPath: "/media/tu/Work/Datas/@@1002-0001-190828-00/Output/gray/imu.txt"
 
 Sys.BeginNo: 300
-Sys.EndNo:   400
+Sys.EndNo:   2000
 
 #--------------------------------------------------------------------------------------------
 # Camera Parameters. Adjust them!
 #--------------------------------------------------------------------------------------------
 
 # Camera calibration and distortion parameters (OpenCV) 
+Camera.Ins: "/media/tu/Work/Datas/@@1002-0001-190828-00/Output/extrinsics.xml"
+Camera.Bs:  "/media/tu/Work/Datas/@@1002-0001-190828-00/Output/0001-1220.bs"
+
 Camera.fx: 2.3472457864004355e+03
 Camera.fy: 2.3472457864004355e+03
 
@@ -26,6 +29,8 @@ Camera.k1: 0.0
 Camera.k2: 0.0
 Camera.p1: 0.0
 Camera.p2: 0.0
+
+
 
 # Camera frames per second 
 Camera.fps: 10.0
