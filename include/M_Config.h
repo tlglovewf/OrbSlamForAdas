@@ -52,6 +52,42 @@ protected:
 };
 
 
+
+class ConfigParam
+{
+public:
+    ConfigParam(const std::string &str)
+    {
+        cv::FileStorage fSettings(str,cv::FileStorage::READ);
+
+        std::cout << "Config file status : " << fSettings.isOpened() << std::endl;
+
+        _BeginNo = fSettings["Sys.BeginNo"];
+        _EndNo   = fSettings["Sys.EndNo"];
+
+        fSettings["Sys.VocPath"] >> _VocPath;
+        cout << "voc file path : " << _VocPath.c_str() << endl;
+        fSettings["Sys.PstPath"] >> _PstPath;
+        cout << "pst file path : " << _PstPath.c_str() << endl;
+        fSettings["Sys.ImgPath"] >> _ImgPath;
+        cout << "img file path : " << _ImgPath.c_str() << endl;
+        fSettings["Sys.ImuPath"] >> _ImuPath;
+        cout << "imu file path : " << _ImuPath.c_str() << endl;
+    }
+
+    
+    static std::string _PstPath;
+    static std::string _ImgPath;
+    static std::string _ImuPath;
+    static std::string _VocPath;
+    static int         _BeginNo;
+    static int         _EndNo;
+};
+
+
+
 //add more
+
+
 
 #endif

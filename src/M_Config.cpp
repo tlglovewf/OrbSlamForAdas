@@ -50,3 +50,12 @@ bool WeiYaConfig::ReadConfig(Camera &cam)
 	
 	return true;
 }
+
+
+
+std::string ConfigParam::_ImgPath;
+std::string ConfigParam::_ImuPath;
+std::string ConfigParam::_PstPath;
+std::string ConfigParam::_VocPath;
+int         ConfigParam::_BeginNo = 0;
+int         ConfigParam::_EndNo   = 0;
