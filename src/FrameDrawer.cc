@@ -91,28 +91,48 @@ cv::Mat FrameDrawer::DrawFrame()
         mnTracked=0;
         mnTrackedVO=0;
         const float r = 12.0;
+        const float thickness = 3.0;
         const int n = vCurrentKeys.size();
         for(int i=0;i<n;i++)
         {
             if(vbVO[i] || vbMap[i])
             {
-                cv::Point2f pt1,pt2;
-                pt1.x=vCurrentKeys[i].pt.x-r;
-                pt1.y=vCurrentKeys[i].pt.y-r;
-                pt2.x=vCurrentKeys[i].pt.x+r;
-                pt2.y=vCurrentKeys[i].pt.y+r;
+                cv::Point2f pt1,pt2,pt3,pt4;
+                // pt1.x=vCurrentKeys[i].pt.x-r;
+                // pt1.y=vCurrentKeys[i].pt.y-r;
+                // pt2.x=vCurrentKeys[i].pt.x+r;
+                // pt2.y=vCurrentKeys[i].pt.y+r;
+
+                pt1.x = vCurrentKeys[i].pt.x;
+                pt1.y = vCurrentKeys[i].pt.y + r;
+
+                pt2.x = vCurrentKeys[i].pt.x;
+                pt2.y = vCurrentKeys[i].pt.y - r;
+
+                pt3.x = vCurrentKeys[i].pt.x + r;
+                pt3.y = vCurrentKeys[i].pt.y;
+
+                pt4.x = vCurrentKeys[i].pt.x - r;
+                pt4.y = vCurrentKeys[i].pt.y;
 
                 // This is a match to a MapPoint in the map
                 const int sz = 6;
                 if(vbMap[i])
                 {
-                    cv::rectangle(im,pt1,pt2,cv::Scalar(0,255,0));
+                    // cv::rectangle(im,pt1,pt2,cv::Scalar(0,255,0));
+
+                    cv::line(im,pt1,pt2,cv::Scalar(0,255,0),thickness);
+                    cv::line(im,pt3,pt4,cv::Scalar(0,255,0),thickness);
+
                     cv::circle(im,vCurrentKeys[i].pt,sz,cv::Scalar(0,255,0),-1);
                     mnTracked++;
                 }
                 else // This is match to a "visual odometry" MapPoint created in the last frame
                 {
-                    cv::rectangle(im,pt1,pt2,cv::Scalar(255,0,0));
+                    // cv::rectangle(im,pt1,pt2,cv::Scalar(255,0,0));
+
+                    cv::line(im,pt1,pt2,cv::Scalar(255,0,0),thickness);
+                    cv::line(im,pt3,pt4,cv::Scalar(255,0,0),thickness);
                     cv::circle(im,vCurrentKeys[i].pt,sz,cv::Scalar(255,0,0),-1);
                     mnTrackedVO++;
                 }

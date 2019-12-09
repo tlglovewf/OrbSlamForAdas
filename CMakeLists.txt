@@ -26,11 +26,11 @@ else()
    message(FATAL_ERROR "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
-IF(CMAKE_COMPILER_IS_GNUCC)
-   message("CMAKE_COMPILER_IS_GNUCC is: " ${CMAKE_COMPILER_IS_GNUCC})
-   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
-   set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
-ENDIF(CMAKE_COMPILER_IS_GNUCC)
+# IF(CMAKE_COMPILER_IS_GNUCC)
+#    message("CMAKE_COMPILER_IS_GNUCC is: " ${CMAKE_COMPILER_IS_GNUCC})
+#    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0")
+#    set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -O0")
+# ENDIF(CMAKE_COMPILER_IS_GNUCC)
 
 LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
 
@@ -74,6 +74,10 @@ src/KeyFrameDatabase.cc
 src/Sim3Solver.cc
 src/Initializer.cc
 src/Viewer.cc
+src/M_Config.cpp
+src/M_CoorTransform.cpp
+src/M_DataLoader.cpp
+src/M_DataManager.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -86,36 +90,7 @@ ${PROJECT_SOURCE_DIR}/Thirdparty/g2o/lib/libg2o.so
 
 # Build examples
 
-# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/Examples/RGB-D)
-
-# add_executable(rgbd_tum
-# Examples/RGB-D/rgbd_tum.cc)
-# target_link_libraries(rgbd_tum ${PROJECT_NAME})
-
-# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/Examples/Stereo)
-
-# add_executable(stereo_kitti
-# Examples/Stereo/stereo_kitti.cc)
-# target_link_libraries(stereo_kitti ${PROJECT_NAME})
-
-# add_executable(stereo_euroc
-# Examples/Stereo/stereo_euroc.cc)
-# target_link_libraries(stereo_euroc ${PROJECT_NAME})
-
-
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/Examples/Monocular)
-
-# add_executable(mono_tum
-# Examples/Monocular/mono_tum.cc)
-# target_link_libraries(mono_tum ${PROJECT_NAME})
-
-# add_executable(mono_kitti
-# Examples/Monocular/mono_kitti.cc)
-# target_link_libraries(mono_kitti ${PROJECT_NAME})
-
-# add_executable(mono_euroc
-# Examples/Monocular/mono_euroc.cc)
-# target_link_libraries(mono_euroc ${PROJECT_NAME})
 
 add_executable(weiya
 Examples/Monocular/weiya.cc)

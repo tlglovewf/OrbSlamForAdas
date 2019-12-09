@@ -1,5 +1,15 @@
 %YAML:1.0
 
+#-----------------------------
+# Path Parameters 
+#-----------------------------
+Sys.ImgPath: "/media/tu/Work/Datas/@@1002-0001-190828-00/Output/gray/"
+Sys.PstPath: "/media/tu/Work/Datas/@@1002-0001-190828-00/Output/gray/pst.txt"
+Sys.VocPath: "/media/tu/Work/GitHub/OrbSlamForAdas/Vocabulary/ORBvoc.txt"
+
+Sys.BeginNo: 300
+Sys.EndNo:   400
+
 #--------------------------------------------------------------------------------------------
 # Camera Parameters. Adjust them!
 #--------------------------------------------------------------------------------------------

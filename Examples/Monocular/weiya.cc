@@ -30,35 +30,70 @@
 #include"System.h"
 #include "dirent.h"
 #include<unistd.h>
+
+#include "M_DataManager.h"
+
 using namespace std;
 
+class ConfigParam
+{
+public:
+    ConfigParam(const std::string &str)
+    {
+        cv::FileStorage fSettings(str,cv::FileStorage::READ);
 
+        std::cout << "Config file status : " << fSettings.isOpened() << std::endl;
 
+        _BeginNo = fSettings["Sys.BeginNo"];
+        _EndNo   = fSettings["Sys.EndNo"];
+
+        fSettings["Sys.VocPath"] >> _VocPath;
+        cout << "voc file path : " << _VocPath.c_str() << endl;
+        fSettings["Sys.PstPath"] >> _PstPath;
+        cout << "pst file path : " << _PstPath.c_str() << endl;
+        fSettings["Sys.ImgPath"] >> _ImgPath;
+        cout << "img file path : " << _ImgPath.c_str() << endl;
+        fSettings["Sys.ImuPath"] >> _ImuPath;
+        cout << "imu file path : " << _ImuPath.c_str() << endl;
+    }
+
+    
+    static std::string _PstPath;
+    static std::string _ImgPath;
+    static std::string _ImuPath;
+    static std::string _VocPath;
+    static int         _BeginNo;
+    static int         _EndNo;
+};
+
+std::string ConfigParam::_ImgPath;
+std::string ConfigParam::_ImuPath;
+std::string ConfigParam::_PstPath;
+std::string ConfigParam::_VocPath;
+int         ConfigParam::_BeginNo = 0;
+int         ConfigParam::_EndNo   = 0;
 
 void LoadImages(const string &strSequence, vector<string> &vstrImageFilenames,
                 vector<double> &vTimestamps);
 
 int main(int argc, char **argv)
 {
+    const string cfgpath = "./weiya.yaml";
 
-    // const string imgpath = "/media/tu/Work/Datas/@@1002-0001-191122-03/gray";
-    const string imgpath = "/media/tu/Work/Datas/@@1002-0001-190828-00/Output/gray";
-    const string vocpath = "/media/tu/Work/GitHub/OrbSlamForAdas/Vocabulary/ORBvoc.txt";
-    const string cfgpath = "/media/tu/Work/GitHub/OrbSlamForAdas/Examples/Monocular/weiya.yaml";
+    ConfigParam config(cfgpath);
 
-    printf("%s\n",imgpath.c_str());
-    printf("%s\n",vocpath.c_str());
-    printf("%s\n",cfgpath.c_str());
-
-    // Retrieve paths to images
-    vector<string> vstrImageFilenames;
     vector<double> vTimestamps;
-    LoadImages(imgpath, vstrImageFilenames, vTimestamps);
+     
+    if(!M_DataManager::getSingleton()->LoadData(ConfigParam::_PstPath,
+                                                ConfigParam::_ImuPath))
+    {
+        return -1;
+    }
 
-    int nImages = vstrImageFilenames.size();
+    int nImages = M_DataManager::getSingleton()->GetImgSize();
 
     // Create SLAM system. It initializes all system threads and gets ready to process frames.
-    ORB_SLAM2::System SLAM(vocpath,cfgpath,ORB_SLAM2::System::MONOCULAR,true);
+    ORB_SLAM2::System SLAM(ConfigParam::_VocPath,cfgpath,ORB_SLAM2::System::MONOCULAR,true);
 
     // Vector for tracking time statistics
     vector<float> vTimesTrack;
@@ -70,17 +105,24 @@ int main(int argc, char **argv)
 
     // Main loop
     cv::Mat im;
-    for(int ni = 200; ni<nImages; ni++)
+    const int st_no = ConfigParam::_BeginNo;
+    ImgInfoVIter it = M_DataManager::getSingleton()->begin() + st_no;
+    ImgInfoVIter ed = min(M_DataManager::getSingleton()->end(),M_DataManager::getSingleton()->begin() + ConfigParam::_EndNo);
+ 
+    M_DataManager::getSingleton()->setIndicator(st_no);
+    int index = 0;
+    for(; it != ed; ++it)
     {
-        size_t len = vstrImageFilenames[ni].size() - 12;
-        cout << "read " << vstrImageFilenames[ni].substr(len).c_str() << endl;
+        size_t len = it->first.size() - 12;
+        cout << "read " << it->first.substr(len).c_str() << endl;
         // Read image from file
-        im = cv::imread(vstrImageFilenames[ni],CV_LOAD_IMAGE_UNCHANGED);
-        double tframe = vTimestamps[ni];
+        const string imgpath = ConfigParam::_ImgPath + it->first;
+        im = cv::imread(imgpath,CV_LOAD_IMAGE_UNCHANGED);
+        double tframe = it->second._t;
 
         if(im.empty())
         {
-            cerr << endl << "Failed to load image at: " << vstrImageFilenames[ni] << endl;
+            cerr << endl << "Failed to load image at: " << it->first << endl;
             return 1;
         }
 
@@ -101,73 +143,25 @@ int main(int argc, char **argv)
 
         double ttrack= std::chrono::duration_cast<std::chrono::duration<double> >(t2 - t1).count();
 
-        vTimesTrack[ni]=ttrack;
+        vTimesTrack[index]=ttrack;
 
         // Wait to load the next frame
         double T=0;
-        if(ni<nImages-1)
-            T = vTimestamps[ni+1]-tframe;
-        else if(ni>0)
-            T = tframe-vTimestamps[ni-1];
+        if(index < nImages - 1)
+            T = (it + 1)->second._t - tframe;
+        else if(index++ > 0)
+            T = tframe - (it - 1)->second._t;
 
-        // if(ttrack<T)
-        //     usleep((T-ttrack)*1e6);
+        if(ttrack<T)
+            usleep((T-ttrack)*1e6);
         // usleep(1.5e6);
     }
 
     // Stop all threads
     SLAM.Shutdown();
-
-    // Tracking time statistics
-    sort(vTimesTrack.begin(),vTimesTrack.end());
-    float totaltime = 0;
-    for(int ni=0; ni<nImages; ni++)
-    {
-        totaltime+=vTimesTrack[ni];
-    }
-    cout << "-------" << endl << endl;
-    cout << "median tracking time: " << vTimesTrack[nImages/2] << endl;
-    cout << "mean tracking time: " << totaltime/nImages << endl;
-
-    // Save camera trajectory
-    SLAM.SaveKeyFrameTrajectoryTUM("KeyFrameTrajectory.txt");    
+    cout << "Exe Successfully!" << endl;
+    cout << "Save the trace " << endl;
+   
 
     return 0;
-}
-bool isPicSuffix(const char *pName,size_t len)
-{
-    const size_t suffix = 3;
-    assert(pName);
-    if(len < suffix)
-    {
-        return false;
-    }
-    const char *pSuffix =  &pName[len - suffix];
-    
-    return !strcasecmp(pSuffix, "jpg") | !strcasecmp(pSuffix, "png");
-}
-void LoadImages( const std::string &dirpath, vector<string> &files , vector<double> &vTimestamps)
-{
-    DIR *dp;
-    struct dirent *dirp;
-    if((dp = opendir(dirpath.c_str())) == NULL)
-    {
-        assert(NULL);
-    }
-    int index = 0;
-    while((dirp = readdir(dp)) != NULL)
-    {
-        if(isPicSuffix(dirp->d_name,strlen(dirp->d_name)))
-        {
-            std::string filepath(dirpath);
-            filepath.append("/");
-            filepath.append(dirp->d_name);
-            files.emplace_back(filepath);
-            // printf("%s\n",filepath.c_str());
-            vTimestamps.push_back(1.0);
-            ++index;
-        }
-    }
-    closedir(dp);
-    std::sort(files.begin(),files.end());
 }
