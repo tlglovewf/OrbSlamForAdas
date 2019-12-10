@@ -59,6 +59,6 @@ std::string ConfigParam::_PstPath;
 std::string ConfigParam::_VocPath;
 std::string ConfigParam::_InsPath;
 std::string ConfigParam::_fBsPath;
-
+std::string ConfigParam::_OutPath;
 int         ConfigParam::_BeginNo = 0;
 int         ConfigParam::_EndNo   = 0;

@@ -38,14 +38,16 @@ using namespace std;
 int main(int argc, char **argv)
 {
     const string cfgpath = "./weiya.yaml";
-    const string realpath = "/media/tu/Work/Datas/TracePath/real.txt";
-    const string estfpath = "/media/tu/Work/Datas/TracePath/est.txt";
+    
+    ConfigParam config(cfgpath);
+
+    const string realpath = ConfigParam::_OutPath + "/real.txt";
+    const string estfpath = ConfigParam::_OutPath + "/est.txt";
     std::ofstream fReal;
     fReal.open(realpath);
     std::ofstream fEst;
     fEst.open(estfpath);
-    ConfigParam config(cfgpath);
-
+    
     vector<double> vTimestamps;
     Camera cam;
     Ptr<IConfig> pCfg = new WeiYaConfig(ConfigParam::_InsPath,ConfigParam::_fBsPath);
@@ -67,7 +69,7 @@ int main(int argc, char **argv)
 
     cout << endl << "-------" << endl;
     cout << "Start processing sequence ..." << endl;
-    cout << "Images in the sequence: " << nImages << endl << endl;
+    cout << "Images in the sequence: " << nImages << endl << endl; 
 
     // Main loop
     cv::Mat im;
@@ -75,6 +77,9 @@ int main(int argc, char **argv)
     ImgInfoVIter it = M_DataManager::getSingleton()->begin() + st_no;
     ImgInfoVIter ed = min(M_DataManager::getSingleton()->end(),M_DataManager::getSingleton()->begin() + ConfigParam::_EndNo);
  
+    if(it == ed)
+        ed = M_DataManager::getSingleton()->end();
+
     M_DataManager::getSingleton()->setIndicator(st_no);
     int index = 0;
     PoseData origin  = it->second;
