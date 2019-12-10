@@ -35,19 +35,23 @@
 
 using namespace std;
 
+#define WRITEFILE 0
+
 int main(int argc, char **argv)
 {
     const string cfgpath = "./weiya.yaml";
     
     ConfigParam config(cfgpath);
 
+#if WRITEFILE
     const string realpath = ConfigParam::_OutPath + "/real.txt";
     const string estfpath = ConfigParam::_OutPath + "/est.txt";
     std::ofstream fReal;
     fReal.open(realpath);
     std::ofstream fEst;
     fEst.open(estfpath);
-    
+#endif
+
     vector<double> vTimestamps;
     Camera cam;
     Ptr<IConfig> pCfg = new WeiYaConfig(ConfigParam::_InsPath,ConfigParam::_fBsPath);
@@ -120,7 +124,9 @@ int main(int argc, char **argv)
             // cout << "real " << ptmt.at<double>(2) << endl;
             // predata = it->second;
         }
+        #if WRITEFILE
         M_Untils::WriteRealTrace(fReal,it->second.pos,it->first);
+        #endif
         // Pass the image to the SLAM system
         SLAM.TrackMonocular(im,picname,tframe);
 
@@ -153,6 +159,7 @@ int main(int argc, char **argv)
     SLAM.Shutdown();
     cout << "Slam Program exe Successfully!" << endl;
 
+#if WRITEFILE
     std::vector<ORB_SLAM2::KeyFrame*> keyframes = SLAM.GetAllKeyFrames();
     cout << "Begin saving estimate trace! " << keyframes.size() << endl;
     for(int i = 0 ; i < keyframes.size() ; ++i)
@@ -172,5 +179,6 @@ int main(int argc, char **argv)
     cout << "Estimate trace write successfully!!! " << endl;
     fReal.close();
     fEst.close();
+#endif
     return 0;
 }
