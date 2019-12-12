@@ -456,7 +456,7 @@ void LocalMapping::CreateNewMapPoints()
             nnew++;
         }
     }
-    // cout << "create new points : " << nnew << endl;
+    cout << "create new points : " << nnew << endl;
 }
 
 void LocalMapping::SearchInNeighbors()

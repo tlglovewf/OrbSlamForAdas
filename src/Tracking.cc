@@ -235,7 +235,7 @@ cv::Mat Tracking::GrabImageRGBD(const cv::Mat &imRGB,const cv::Mat &imD, const d
 }
 
 
-cv::Mat Tracking::GrabImageMonocular(const cv::Mat &im,const std::string &name, const double &timestamp)
+cv::Mat Tracking::GrabImageMonocular(const cv::Mat &im,const cv::Mat &vel,const std::string &name, const double &timestamp)
 {
     mImGray = im;
 
@@ -259,14 +259,15 @@ cv::Mat Tracking::GrabImageMonocular(const cv::Mat &im,const std::string &name, 
     else
         mCurrentFrame = Frame(mImGray,timestamp,mpORBextractorLeft,mpORBVocabulary,mK,mDistCoef,mbf,mThDepth);
     mCurrentFrame.SetName(name);
-    Track();
+    
+    Track(vel);
 
-    mpMapDrawer->Print();
+    mpMapDrawer->InsertPosT(vel);
 
     return mCurrentFrame.mTcw.clone();
 }
 
-void Tracking::Track()
+void Tracking::Track(const cv::Mat &vel)
 {
     while(!mpLocalMapper->AcceptKeyFrames())
     {
@@ -318,7 +319,17 @@ void Tracking::Track()
                 {
                     bOK = TrackWithMotionModel();
                     if(!bOK)
-                        bOK = TrackReferenceKeyFrame();
+                    {
+                        cout << "begin track reference." << endl;
+                        // bOK = TrackReferenceKeyFrame();
+                        // cout << "track reference " << bOK << endl;
+                        // if(!bOK)
+                        {
+                            vel.convertTo(mVelocity,mVelocity.type());
+                            bOK = TrackWithMotionModel();
+                            cout << "track with motion. " << bOK << endl;
+                        }
+                    } 
                 }
             }
             else
@@ -433,7 +444,7 @@ void Tracking::Track()
                 mLastFrame.GetRotationInverse().copyTo(LastTwc.rowRange(0,3).colRange(0,3));
                 mLastFrame.GetCameraCenter().copyTo(LastTwc.rowRange(0,3).col(3));
                 mVelocity = mCurrentFrame.mTcw*LastTwc;
-            }
+            } 
             else
                 mVelocity = cv::Mat();
 
@@ -482,7 +493,7 @@ void Tracking::Track()
             {
                 cout << "Track lost soon after initialisation, reseting..." << endl;
                 // mpSystem->Reset();
-                // pause();
+                pause();
                 return;
             }
         }
@@ -905,8 +916,7 @@ void Tracking::UpdateLastFrame()
 
 bool Tracking::TrackWithMotionModel()
 {
-    // ORBmatcher matcher(0.9,true);
-    ORBmatcher matcher(1.2,true);
+    ORBmatcher matcher(0.9,true);
 
     // Update last frame pose according to its reference keyframe
     // Create "visual odometry" points if in Localization Mode
@@ -919,13 +929,9 @@ bool Tracking::TrackWithMotionModel()
 
     // Project points seen in previous frame
     int th;
-    // if(mSensor!=System::STEREO)
-    //     th=15;
-    // else
-    //     th=7;
 
     if(mSensor!=System::STEREO)
-        th=100;
+        th=50;
     else
         th=7;
 
@@ -935,11 +941,11 @@ bool Tracking::TrackWithMotionModel()
     if(nmatches < 15)
     {
         fill(mCurrentFrame.mvpMapPoints.begin(),mCurrentFrame.mvpMapPoints.end(),static_cast<MapPoint*>(NULL));
-        nmatches = matcher.SearchByProjection(mCurrentFrame,mLastFrame,2*th,mSensor==System::MONOCULAR);
+        nmatches = matcher.SearchByProjection(mCurrentFrame,mLastFrame,2 * th,mSensor==System::MONOCULAR);
     }
 
-    // if(nmatches < 15)
-    //     return false;
+    if(nmatches < 15)
+        return false;
 
     // Optimize frame pose with all matches
     Optimizer::PoseOptimization(&mCurrentFrame);
@@ -970,7 +976,7 @@ bool Tracking::TrackWithMotionModel()
         mbVO = nmatchesMap<10;
         return nmatches>20;
     }
-    // cout << "track with motion count : " << nmatchesMap << endl;
+    cout << "track with motion count : " << nmatchesMap << endl;
     return nmatchesMap >= 10;
 }
 
@@ -1014,7 +1020,7 @@ bool Tracking::TrackLocalMap()
     if(mCurrentFrame.mnId<mnLastRelocFrameId+mMaxFrames && mnMatchesInliers<50)
         return false;
 
-    if(mnMatchesInliers<20)//<30)
+    if(mnMatchesInliers<30)
         return false;
     else
         return true;

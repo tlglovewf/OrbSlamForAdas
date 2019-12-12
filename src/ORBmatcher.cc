@@ -1373,6 +1373,7 @@ int ORBmatcher::SearchByProjection(Frame &CurrentFrame, const Frame &LastFrame, 
             
             if(!LastFrame.mvbOutlier[i])
             {
+                ++index;
                 ++total;
                 // Project
                 cv::Mat x3Dw = pMP->GetWorldPos();
@@ -1549,7 +1550,7 @@ int ORBmatcher::SearchByProjection(Frame &CurrentFrame, const Frame &LastFrame, 
     }
     if(nmatches < 10)
     {
-        cout << "less 3d - 2d match points" << endl;
+        cout << "less 3d - 2d match points " << nmatches << " " << index << endl;
     }
     return nmatches;
 }

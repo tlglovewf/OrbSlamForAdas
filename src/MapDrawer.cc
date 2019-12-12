@@ -39,6 +39,29 @@ MapDrawer::MapDrawer(Map* pMap, const string &strSettingPath):mpMap(pMap)
     mCameraSize = fSettings["Viewer.CameraSize"];
     mCameraLineWidth = fSettings["Viewer.CameraLineWidth"];
 
+    mPstPose = cv::Mat::eye(4,4,CV_64F);
+    mTruths.emplace_back(cv::Point3d(0,0,0));
+
+}
+
+void MapDrawer::InsertPosT(const cv::Mat &vel)
+{
+       mPstPose = vel * mPstPose;
+    //  cout << "insert velcity " << velcity << endl;
+    cv::Mat ptmt = -mPstPose.rowRange(0,3).colRange(0,3).t()*mPstPose.rowRange(0,3).col(3);
+    cv::Point3d pt(ptmt.at<double>(0),ptmt.at<double>(1),ptmt.at<double>(2));
+
+    {
+        // cout << "truth " << pt.z << endl;
+        if(!mCameraPose.empty())
+        {
+            cv::Mat Rwc = mCameraPose.rowRange(0,3).colRange(0,3).t();
+            cv::Mat twc = -Rwc*mCameraPose.rowRange(0,3).col(3);
+            // cout << "estmt " << twc.at<float>(2) << endl;
+        }
+    }
+
+    mTruths.emplace_back(pt);
 }
 
 void MapDrawer::DrawMapPoints()
@@ -174,14 +197,23 @@ void MapDrawer::DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph)
 
         glEnd();
     }
-}
 
-void MapDrawer::Print()
-{
-    // if(mCameraPose.empty())
-    //     return;
-    // cv::Mat twc = -mCameraPose.rowRange(0,3).colRange(0,3).t()*mCameraPose.rowRange(0,3).col(3);
-    // cout << "esti " << twc.at<float>(2) << endl;
+    //draw truth 
+    glLineWidth(mGraphLineWidth);
+    glColor4f(0.0f, 0.0f, 1.0f, 0.6f);
+    glBegin(GL_LINES);
+    for (size_t i = 1; i < mTruths.size(); i++)
+    {
+        glVertex3f(mTruths[i - 1].x, mTruths[i - 1].y, mTruths[i - 1].z);
+        glVertex3f(mTruths[i].x, mTruths[i].y, mTruths[i].z);
+    }
+    glEnd();
+
+    glPointSize(8);
+    glColor3b(0,255,0);
+    glBegin(GL_POINTS);
+    glVertex3f(mTruths.rbegin()->x,mTruths.rbegin()->y,mTruths.rbegin()->z);
+    glEnd();
 }
 
 void MapDrawer::DrawCurrentCamera(pangolin::OpenGlMatrix &Twc)

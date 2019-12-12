@@ -44,8 +44,7 @@ public:
     void SetCurrentCameraPose(const cv::Mat &Tcw);
     void SetReferenceKeyFrame(KeyFrame *pKF);
     void GetCurrentOpenGLCameraMatrix(pangolin::OpenGlMatrix &M);
-
-    void Print();
+    void InsertPosT(const cv::Mat &vel);
 private:
 
     float mKeyFrameSize;
@@ -56,7 +55,8 @@ private:
     float mCameraLineWidth;
 
     cv::Mat mCameraPose;
-
+    cv::Mat mPstPose;
+    std::vector< cv::Point3d > mTruths;
     std::mutex mMutexCamera;
 };
 

@@ -35,7 +35,7 @@
 
 using namespace std;
 
-#define WRITEFILE 0
+#define WRITEFILE 1
 
 int main(int argc, char **argv)
 {
@@ -112,23 +112,23 @@ int main(int argc, char **argv)
         cv::Mat velcity = cv::Mat::eye(4,4,CV_64F);
         if(0 != index)
         {
-            // cv::Mat R,t;
+            cv::Mat R,t;
 
-            // M_Untils::GetRtFromPose(predata,it->second,cam.RCam2Imu,cam.TCam2Imu,R,t);
+            M_Untils::GetRtFromPose(predata,it->second,cam.RCam2Imu,cam.TCam2Imu,R,t);
 
-            // R.copyTo(velcity.rowRange(0,3).colRange(0,3));
-            // t.copyTo(velcity.rowRange(0,3).col(3));
+            R.copyTo(velcity.rowRange(0,3).colRange(0,3));
+            t.copyTo(velcity.rowRange(0,3).col(3));
 
             // abspos = velcity * abspos;
             // cv::Mat ptmt = -abspos.rowRange(0,3).colRange(0,3).t()*abspos.rowRange(0,3).col(3);
             // cout << "real " << ptmt.at<double>(2) << endl;
-            // predata = it->second;
+            predata = it->second;
         }
         #if WRITEFILE
-        M_Untils::WriteRealTrace(fReal,it->second.pos,it->first);
+        M_Untils::WriteRealTrace(fReal,it->second.pos,picname);
         #endif
         // Pass the image to the SLAM system
-        SLAM.TrackMonocular(im,picname,tframe);
+        SLAM.TrackMonocular(im,velcity,picname,tframe);
 
 #ifdef COMPILEDWITHC11
         std::chrono::steady_clock::time_point t2 = std::chrono::steady_clock::now();

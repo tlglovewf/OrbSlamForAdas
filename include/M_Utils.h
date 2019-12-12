@@ -157,13 +157,14 @@ public:
         
         //相对旋转矩阵
         
-        R = cam2imuR.t() * Rimu2xyzt2.t() * Rimu2xyzt1 * cam2imuR;//R
+        // R =  cam2imuR.t() * Rimu2xyzt2.t() * Rimu2xyzt1 * cam2imuR;//R
+        R = cam2imuR.t() * Rimu2xyzt2.t() * Rimu2xyzt1 * cam2imuR;
     
         //计算cur相机在xyz坐标系中坐标
         cv::Mat curCamPos = Rimu2xyzt2 * cam2imuT + pt2;
-        //计算以pre为原点建立的imu坐标系,pt2的位置
-        cv::Mat imut1Pcam = Rimu2xyzt1.t() * curCamPos - Rimu2xyzt1.t() * pt1;
         //计算以pre为原点建立的imu坐标系,pt2相机的位置
+        cv::Mat imut1Pcam = Rimu2xyzt1.t() * (curCamPos - pt1);
+        //计算以pre为原点建立的cam坐标系,pt2相机的位置
         cv::Mat camt1Pcam = cam2imuR.t() * imut1Pcam - cam2imuR.t() * cam2imuT;
         
         //以cam2的位置 反推t  这里r * cam2 只是计算方向

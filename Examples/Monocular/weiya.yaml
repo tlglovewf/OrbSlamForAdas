@@ -10,7 +10,7 @@ Sys.ImuPath: "/media/tu/Work/Datas/@@1002-0001-190828-00/Output/gray/imu.txt"
 Sys.OutPath: "/media/tu/Work/Datas/TracePath/"
 
 Sys.BeginNo: 300
-Sys.EndNo:   600 #2000
+Sys.EndNo:   450 #2000
 
 #--------------------------------------------------------------------------------------------
 # Camera Parameters. Adjust them!
@@ -57,7 +57,7 @@ ORBextractor.nLevels: 8
 # Firstly we impose iniThFAST. If no corners are detected we impose a lower value minThFAST
 # You can lower these values if your images have low contrast			
 ORBextractor.iniThFAST: 20
-ORBextractor.minThFAST: 7
+ORBextractor.minThFAST: 5   #7
 
 #--------------------------------------------------------------------------------------------
 # Viewer Parameters
