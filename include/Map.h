@@ -46,6 +46,10 @@ public:
     void EraseKeyFrame(KeyFrame* pKF);
     void SetReferenceMapPoints(const std::vector<MapPoint*> &vpMPs);
     void InformNewBigChange();
+    KeyFrame* GetCurrentKeyFrame()const
+    {
+        return mpCurrentKeyFrame;
+    }
     int GetLastBigChangeIdx();
 
     std::vector<KeyFrame*> GetAllKeyFrames();
@@ -71,6 +75,8 @@ protected:
     std::set<KeyFrame*> mspKeyFrames;
 
     std::vector<MapPoint*> mvpReferenceMapPoints;
+
+    KeyFrame           *mpCurrentKeyFrame;
 
     long unsigned int mnMaxKFid;
 

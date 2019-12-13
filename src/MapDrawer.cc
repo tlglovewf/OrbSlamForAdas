@@ -46,20 +46,11 @@ MapDrawer::MapDrawer(Map* pMap, const string &strSettingPath):mpMap(pMap)
 
 void MapDrawer::InsertPosT(const cv::Mat &vel)
 {
-       mPstPose = vel * mPstPose;
+    unique_lock<mutex> lock(mMutexCamera);
+    mPstPose = vel * mPstPose;
     //  cout << "insert velcity " << velcity << endl;
     cv::Mat ptmt = -mPstPose.rowRange(0,3).colRange(0,3).t()*mPstPose.rowRange(0,3).col(3);
     cv::Point3d pt(ptmt.at<double>(0),ptmt.at<double>(1),ptmt.at<double>(2));
-
-    {
-        // cout << "truth " << pt.z << endl;
-        if(!mCameraPose.empty())
-        {
-            cv::Mat Rwc = mCameraPose.rowRange(0,3).colRange(0,3).t();
-            cv::Mat twc = -Rwc*mCameraPose.rowRange(0,3).col(3);
-            // cout << "estmt " << twc.at<float>(2) << endl;
-        }
-    }
 
     mTruths.emplace_back(pt);
 }
@@ -76,7 +67,7 @@ void MapDrawer::DrawMapPoints()
 
     glPointSize(mPointSize);
     glBegin(GL_POINTS);
-    glColor3f(0.0,0.0,0.0);
+    glColor3f(0.6,0.8,0.0);
 
     for(size_t i=0, iend=vpMPs.size(); i<iend;i++)
     {
@@ -200,7 +191,7 @@ void MapDrawer::DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph)
 
     //draw truth 
     glLineWidth(mGraphLineWidth);
-    glColor4f(0.0f, 0.0f, 1.0f, 0.6f);
+    glColor4f(1.0f, 1.0f, 0.0f, 1.0f);
     glBegin(GL_LINES);
     for (size_t i = 1; i < mTruths.size(); i++)
     {
@@ -210,7 +201,7 @@ void MapDrawer::DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph)
     glEnd();
 
     glPointSize(8);
-    glColor3b(0,255,0);
+    glColor4f(1.0f, 0.0f, 1.0f, 1.0f);
     glBegin(GL_POINTS);
     glVertex3f(mTruths.rbegin()->x,mTruths.rbegin()->y,mTruths.rbegin()->z);
     glEnd();
@@ -256,6 +247,40 @@ void MapDrawer::DrawCurrentCamera(pangolin::OpenGlMatrix &Twc)
     glEnd();
 
     glPopMatrix();
+
+}
+
+void MapDrawer::DrawReleativeLines()
+{
+    if(NULL == mpMap->GetCurrentKeyFrame())
+        return;
+
+    KeyFrame *pKf = mpMap->GetCurrentKeyFrame();
+   
+    if(NULL != pKf)
+    {
+        cv::Mat campt = pKf->GetPose();
+
+        cv::Mat origin = pKf->GetCameraCenter();
+        const std::set<MapPoint*> &mppoints = pKf->GetMapPoints();
+
+        std::set<MapPoint*>::iterator it = mppoints.begin();
+        std::set<MapPoint*>::iterator ed = mppoints.end();
+        glColor3f(1.0,1.0,1.0);
+        glLineWidth(0.5);
+        glBegin(GL_LINES);
+ 
+        for(; it != ed; ++it)
+        {
+           const cv::Mat &wdpos = (*it)->GetWorldPos();
+#define TT float
+            glVertex3d( origin.at<TT>(0),origin.at<TT>(1),origin.at<TT>(2));
+            glVertex3d( wdpos.at<TT>(0) , wdpos.at<TT>(1), wdpos.at<TT>(2));
+#undef TT
+
+        }
+        glEnd();
+    }
 }
 
 

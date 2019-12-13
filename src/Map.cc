@@ -25,7 +25,7 @@
 namespace ORB_SLAM2
 {
 
-Map::Map():mnMaxKFid(0),mnBigChangeIdx(0)
+Map::Map():mnMaxKFid(0),mnBigChangeIdx(0),mpCurrentKeyFrame(NULL)
 {
 }
 
@@ -33,6 +33,7 @@ void Map::AddKeyFrame(KeyFrame *pKF)
 {
     unique_lock<mutex> lock(mMutexMap);
     mspKeyFrames.insert(pKF);
+    mpCurrentKeyFrame = pKF;
     if(pKF->mnId>mnMaxKFid)
         mnMaxKFid=pKF->mnId;
 }
