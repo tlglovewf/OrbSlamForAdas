@@ -632,7 +632,6 @@ void Tracking::MonocularInitialization()
         vector<cv::DMatch> matches;
         if(mpInitializer->Initialize(mCurrentFrame, mvIniMatches, Rcw, tcw, mvIniP3D, vbTriangulated))
         {
-            cout << endl << "initial successfully. t value is : " << tcw << endl;
             for(size_t i=0, iend=mvIniMatches.size(); i<iend;i++)
             {
                 if(mvIniMatches[i]>=0 && !vbTriangulated[i])
@@ -695,6 +694,9 @@ void Tracking::CreateInitialMapMonocular()
         if(mvIniMatches[i]<0)
             continue;
 
+        //剔除部分远点
+        if(mvIniP3D[i].z > 60.0)
+            continue;
         //Create MapPoint.
         cv::Mat worldPos(mvIniP3D[i]);
 

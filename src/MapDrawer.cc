@@ -272,6 +272,8 @@ void MapDrawer::DrawReleativeLines()
  
         for(; it != ed; ++it)
         {
+            if((*it)->isBad())
+                continue;
            const cv::Mat &wdpos = (*it)->GetWorldPos();
 #define TT float
             glVertex3d( origin.at<TT>(0),origin.at<TT>(1),origin.at<TT>(2));

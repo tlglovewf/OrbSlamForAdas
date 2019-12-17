@@ -3,22 +3,22 @@
 #-----------------------------
 # Path Parameters 
 #-----------------------------
-Sys.ImgPath: "/media/tu/Work/Datas/@@1002-0001-190828-00/Output/gray/"
-Sys.PstPath: "/media/tu/Work/Datas/@@1002-0001-190828-00/Output/gray/pst.txt"
+Sys.ImgPath: "/media/tu/Work/Datas/1002-0001-191107-00/gray/"
+Sys.PstPath: "/media/tu/Work/Datas/1002-0001-191107-00/Output/gray/pst.txt"
 Sys.VocPath: "/media/tu/Work/GitHub/OrbSlamForAdas/Vocabulary/ORBvoc.txt"
-Sys.ImuPath: "/media/tu/Work/Datas/@@1002-0001-190828-00/Output/gray/imu.txt"
+Sys.ImuPath: "/media/tu/Work/Datas/1002-0001-191107-00/Output/gray/imu.txt"
 Sys.OutPath: "/media/tu/Work/Datas/TracePath/"
 
 Sys.BeginNo: 300
-Sys.EndNo:   450 #2000
+Sys.EndNo:   2460
 
 #--------------------------------------------------------------------------------------------
 # Camera Parameters. Adjust them!
 #--------------------------------------------------------------------------------------------
 
 # Camera calibration and distortion parameters (OpenCV) 
-Camera.Ins: "/media/tu/Work/Datas/@@1002-0001-190828-00/Output/extrinsics.xml"
-Camera.Bs:  "/media/tu/Work/Datas/@@1002-0001-190828-00/Output/0001-1220.bs"
+Camera.Ins: "/media/tu/Work/Datas/1002-0001-191107-00/Output/extrinsics.xml"
+Camera.Bs:  "/media/tu/Work/Datas/1002-0001-191107-00/Output/BS_0001_20191105.bs"
 
 Camera.fx: 2.3472457864004355e+03
 Camera.fy: 2.3472457864004355e+03
@@ -33,7 +33,7 @@ Camera.p2: 0.0
 
 
 
-# Camera frames per second 
+# Camera frames per second  -
 Camera.fps: 10.0
 
 # Color order of the images (0: BGR, 1: RGB. It is ignored if images are grayscale)
@@ -66,8 +66,8 @@ Viewer.KeyFrameSize: 0.5
 Viewer.KeyFrameLineWidth: 1
 Viewer.GraphLineWidth: 1
 Viewer.PointSize: 2
-Viewer.CameraSize: 1.0
-Viewer.CameraLineWidth: 8
+Viewer.CameraSize: 0.6
+Viewer.CameraLineWidth: 1.2
 Viewer.ViewpointX: 0
 Viewer.ViewpointY: -10
 Viewer.ViewpointZ: -0.1

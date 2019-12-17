@@ -58,7 +58,7 @@ void Viewer::Run()
     mbFinished = false;
     mbStopped = false;
 
-    pangolin::CreateWindowAndBind("Map Viewer",WinWidth,WinHeight);
+    pangolin::CreateWindowAndBind("Slam Simulator",WinWidth,WinHeight);
 
     // 3D Mouse handler requires depth testing to be enabled
     glEnable(GL_DEPTH_TEST);
@@ -72,10 +72,10 @@ void Viewer::Run()
                                 SetBounds(pangolin::Attach::Pix(0),pangolin::Attach::Pix(25),0.0,pangolin::Attach::Pix(WinWidth));
     menuPanel.SetLayout(pangolin::LayoutEqualHorizontal);
     pangolin::Var<bool> menuFollowCamera("menu.Follow Camera",true,true);
-    pangolin::Var<bool> menuShowPoints("menu.Show Points",true,true);
-    pangolin::Var<bool> menuShowKeyFrames("menu.Show KeyFrames",true,true);
-    pangolin::Var<bool> menuShowGraph("menu.Show Graph",true,true);
-    pangolin::Var<bool> menuShowLines("menu.Show RelLines",true,true);
+    pangolin::Var<bool> menuShowPoints("menu.MapPoints",true,true);
+    pangolin::Var<bool> menuShowKeyFrames("menu.MapFrames",true,true);
+    pangolin::Var<bool> menuShowGraph("menu.CovGraph",true,true);
+    pangolin::Var<bool> menuShowLines("menu.RelLines",true,true);
     // pangolin::Var<bool> menuLocalizationMode("menu.Localization Mode",false,true);
     // pangolin::Var<bool> menuReset("menu.Reset",false,false);
 
@@ -93,7 +93,7 @@ void Viewer::Run()
     pangolin::OpenGlMatrix Twc;
     Twc.SetIdentity();
 
-    cv::namedWindow("Current Frame");
+    cv::namedWindow("CurFrame");
 
     bool bFollow = true;
     bool bLocalizationMode = false;
@@ -152,7 +152,7 @@ void Viewer::Run()
         cv::Mat displayImg;
         mpFrameDrawer->DrawTextInfo(im,mpFrameDrawer->getState(),displayImg);
 
-        cv::imshow("Current Frame",displayImg);
+        cv::imshow("CurFrame",displayImg);
 
         cv::waitKey(mT);
 

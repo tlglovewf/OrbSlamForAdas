@@ -118,6 +118,8 @@ bool M_DataManager::LoadData(const string &pstpath, const string &imupath)
             while (!pstfile.eof())
             {
                 getline(pstfile, pststr);
+                if(pststr.empty())
+                    continue;
                 char filename[255] = {0};
                 PoseData pose;
                 sscanf(pststr.c_str(),"%s %lf %lf %lf %lf %lf %lf %lf", filename,
@@ -129,9 +131,8 @@ bool M_DataManager::LoadData(const string &pstpath, const string &imupath)
                                                                             &pose._yaw,
                                                                             &pose._roll);
 
-                mPoseDatas.emplace_back(std::make_pair(filename, pose));
-            }
-
+                mPoseDatas.emplace_back(std::make_pair(filename, pose));             
+           }
             //load imu file
             if(!imupath.empty())
             {
@@ -141,6 +142,8 @@ bool M_DataManager::LoadData(const string &pstpath, const string &imupath)
                 while (!imufile.eof())
                 {
                     getline(imufile, imustr);
+                    if(imustr.empty())
+                        continue;
                     ImuRawData rawdata;
                     sscanf(imustr.c_str(),"%lf %lf %lf %lf %lf %lf %lf", &rawdata._t,
                                                                      &rawdata._gyro_x,

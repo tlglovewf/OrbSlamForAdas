@@ -659,7 +659,7 @@ int ORBmatcher::SearchByBoW(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint *> &
 //根据两帧词袋信息 寻找匹配点(满足对极约束) 生成新的地图点 
 int ORBmatcher::SearchForTriangulation(KeyFrame *pKF1, KeyFrame *pKF2, cv::Mat F12,
                                        vector<pair<size_t, size_t> > &vMatchedPairs, const bool bOnlyStereo)
-{    
+{    //获取两帧词袋要素特征 
     const DBoW2::FeatureVector &vFeatVec1 = pKF1->mFeatVec;
     const DBoW2::FeatureVector &vFeatVec2 = pKF2->mFeatVec;
 
@@ -693,7 +693,7 @@ int ORBmatcher::SearchForTriangulation(KeyFrame *pKF1, KeyFrame *pKF2, cv::Mat F
     DBoW2::FeatureVector::const_iterator f2end = vFeatVec2.end();
 
     while(f1it!=f1end && f2it!=f2end)
-    {
+    {   //要素nodeid 一致性
         if(f1it->first == f2it->first)
         {
             for(size_t i1=0, iend1=f1it->second.size(); i1<iend1; i1++)

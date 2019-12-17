@@ -35,7 +35,7 @@
 
 using namespace std;
 
-#define WRITEFILE 1
+#define WRITEFILE 0
 
 int main(int argc, char **argv)
 {
@@ -77,13 +77,16 @@ int main(int argc, char **argv)
 
     // Main loop
     cv::Mat im;
-    const int st_no = ConfigParam::_BeginNo;
+    const int st_no = min(ConfigParam::_BeginNo - 1,(int)M_DataManager::getSingleton()->GetImgSize() - 1);
     ImgInfoVIter it = M_DataManager::getSingleton()->begin() + st_no;
-    ImgInfoVIter ed = min(M_DataManager::getSingleton()->end(),M_DataManager::getSingleton()->begin() + ConfigParam::_EndNo);
- 
-    if(it == ed)
-        ed = M_DataManager::getSingleton()->end();
+    ImgInfoVIter ed = M_DataManager::getSingleton()->begin() + ConfigParam::_EndNo;
 
+    if(ConfigParam::_EndNo < ConfigParam::_BeginNo)
+    {
+        ed = M_DataManager::getSingleton()->end();
+        cout << "ed" << endl;
+    }
+        
     M_DataManager::getSingleton()->setIndicator(st_no);
     int index = 0;
     PoseData origin  = it->second;
@@ -92,7 +95,9 @@ int main(int argc, char **argv)
     for(; it != ed; ++it)
     {
         size_t len = it->first.size() - 12;
+
         std::string picname = it->first.substr(len,6).c_str();
+        
         // Read image from file
         const string imgpath = ConfigParam::_ImgPath + it->first;
         im = cv::imread(imgpath,CV_LOAD_IMAGE_UNCHANGED);

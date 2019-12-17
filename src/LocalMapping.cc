@@ -239,6 +239,7 @@ void LocalMapping::CreateNewMapPoints()
     int nnew=0;
 
     // Search matches with epipolar restriction and triangulate
+    //搜索邻近帧 检查极线约束和三角化
     for(size_t i=0; i<vpNeighKFs.size(); i++)
     {
         if(i>0 && CheckNewKeyFrames())
@@ -261,8 +262,8 @@ void LocalMapping::CreateNewMapPoints()
         {
             const float medianDepthKF2 = pKF2->ComputeSceneMedianDepth(2);
             const float ratioBaselineDepth = baseline/medianDepthKF2;
-            //如果地图深度太大(点都特别远) 剔除   1/60m
-            if(ratioBaselineDepth<0.0167)
+            //如果地图深度太大(点都特别远) 剔除   1/30m
+            if(ratioBaselineDepth< 0.033)// 0.0167)
                 continue;
         }
 
@@ -429,6 +430,11 @@ void LocalMapping::CreateNewMapPoints()
             if(dist1==0 || dist2==0)
                 continue;
 
+            //过滤部分远点  常量经验值
+            const int sz = 60.0f;
+            if(dist1 > sz)
+                continue;
+            
             const float ratioDist = dist2/dist1;
             const float ratioOctave = mpCurrentKeyFrame->mvScaleFactors[kp1.octave]/pKF2->mvScaleFactors[kp2.octave];
 
