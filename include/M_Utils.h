@@ -375,6 +375,13 @@ public:
         return true;
     }
 
+    /* get gauss project error
+    */
+    static inline cv::Point3d CalcGaussErr(const BLHCoordinate &lf, const BLHCoordinate &rg)
+    {
+       return M_CoorTrans::BLH_to_GaussPrj(rg) - M_CoorTrans::BLH_to_GaussPrj(lf);
+    }
+
 };
 
 //及时

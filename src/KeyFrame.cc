@@ -274,7 +274,7 @@ int KeyFrame::TrackedMapPoints(const int &minObs)
             }
         }
     }
-
+    cout << "tracked map points : " << nPoints << endl;
     return nPoints;
 }
 //获取地图点

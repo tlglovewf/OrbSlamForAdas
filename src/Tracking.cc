@@ -288,7 +288,14 @@ void Tracking::Track(const cv::Mat &vel)
         if(mSensor==System::STEREO || mSensor==System::RGBD)
             StereoInitialization();
         else
-            MonocularInitialization();
+        {
+            //MonocularInitialization();
+            cv::Mat R;
+            cv::Mat t;
+            vel.rowRange(0,3).colRange(0,3).copyTo(R);
+            vel.rowRange(0,3).col(3).copyTo(t);
+            MonocularInitialization(R,t);
+        }
 
         mpFrameDrawer->Update(this);
 
@@ -489,7 +496,7 @@ void Tracking::Track(const cv::Mat &vel)
         if(mState==LOST)
         {
             //add by tu   只要跟丢 并且重定位失败 就重置重新初始化
-            //if(mpMap->KeyFramesInMap()<=5)
+            if(mpMap->KeyFramesInMap()<=5)
             {
                 cout << "Track lost soon after initialisation, reseting..." << endl;
                 // mpSystem->Reset();
@@ -579,7 +586,7 @@ void Tracking::StereoInitialization()
     }
 }
 
-void Tracking::MonocularInitialization()
+void Tracking::MonocularInitialization(const cv::Mat &R, const cv::Mat &t)
 {
 
     if(!mpInitializer)
@@ -630,8 +637,15 @@ void Tracking::MonocularInitialization()
         cv::Mat tcw; // Current Camera Translation
         vector<bool> vbTriangulated; // Triangulated Correspondences (mvIniMatches)
         vector<cv::DMatch> matches;
+#if 0
         if(mpInitializer->Initialize(mCurrentFrame, mvIniMatches, Rcw, tcw, mvIniP3D, vbTriangulated))
         {
+#else
+        if(mpInitializer->Initialize(mCurrentFrame,mvIniMatches,R,t,mvIniP3D,vbTriangulated))
+        {
+            R.convertTo(Rcw,CV_32F);
+            t.convertTo(tcw,CV_32F);
+#endif
             for(size_t i=0, iend=mvIniMatches.size(); i<iend;i++)
             {
                 if(mvIniMatches[i]>=0 && !vbTriangulated[i])
@@ -671,6 +685,11 @@ void Tracking::MonocularInitialization()
 
             CreateInitialMapMonocular();
         }
+        else
+        {
+            cout << "error." << endl;
+        }
+        
     }
 }
 
@@ -739,7 +758,7 @@ void Tracking::CreateInitialMapMonocular()
                      tmp.at<float>(2) * tmp.at<float>(2));
     float invMedianDepth = 1.0f / len ;
 
-    if(medianDepth<0 || pKFcur->TrackedMapPoints(1)<50)
+    if(medianDepth<0 )//|| pKFcur->TrackedMapPoints(1)<50)
     {
         cout << "Wrong initialization, reseting..." << endl;
         Reset();

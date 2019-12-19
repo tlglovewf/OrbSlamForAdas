@@ -42,7 +42,7 @@ public:
     bool Initialize(const Frame &CurrentFrame, const vector<int> &vMatches12,
                     cv::Mat &R21, cv::Mat &t21, vector<cv::Point3f> &vP3D, vector<bool> &vbTriangulated);
 
-
+    bool Initialize(const Frame &CurrentFrame,const vector<int> &vMatches12,const cv::Mat &R, const cv::Mat &t, vector<cv::Point3f> &vP3D, vector<bool> &vbTRiangulated);
 private:
 
     void FindHomography(vector<bool> &vbMatchesInliers, float &score, cv::Mat &H21);
@@ -60,6 +60,9 @@ private:
 
     bool ReconstructH(vector<bool> &vbMatchesInliers, cv::Mat &H21, cv::Mat &K,
                       cv::Mat &R21, cv::Mat &t21, vector<cv::Point3f> &vP3D, vector<bool> &vbTriangulated, float minParallax, int minTriangulated);
+ 
+
+    bool Reconstruct(vector<bool> &vbMatchesInliners, const cv::Mat &R, const cv::Mat &t,cv::Mat &K, vector<cv::Point3f> &vP3D,vector<bool> &vbTriangulated, float parallax);
 
     void Triangulate(const cv::KeyPoint &kp1, const cv::KeyPoint &kp2, const cv::Mat &P1, const cv::Mat &P2, cv::Mat &x3D);
 

@@ -24,7 +24,7 @@
 
 #include "Optimizer.h"
 #include "ORBmatcher.h"
-
+#include "M_Utils.h"
 #include<thread>
 
 namespace ORB_SLAM2
@@ -39,6 +39,44 @@ Initializer::Initializer(const Frame &ReferenceFrame, float sigma, int iteration
     mSigma = sigma;
     mSigma2 = sigma*sigma;
     mMaxIterations = iterations;
+}
+
+
+bool Initializer::Initialize(const Frame &CurrentFrame,const vector<int> &vMatches12,const cv::Mat &R, const cv::Mat &t, vector<cv::Point3f> &vP3D, vector<bool> &vbTRiangulated)
+{
+    mvKeys2 = CurrentFrame.mvKeysUn;
+
+    mvMatches12.clear();
+    mvMatches12.reserve(mvKeys2.size());
+    mvbMatched1.resize(mvKeys1.size());
+    for(size_t i=0, iend=vMatches12.size();i<iend; i++)
+    {
+        if(vMatches12[i]>=0)
+        {
+            mvMatches12.push_back(make_pair(i,vMatches12[i]));
+            mvbMatched1[i]=true;
+        }
+        else
+            mvbMatched1[i]=false;
+    }
+
+    const float minParallax = 1.0;
+
+    cv::Mat E = M_Untils::ComputeEssentialMat(R,t);
+	//cout << "E : " << E << endl;
+    //计算基础矩阵
+    cv::Mat tK;
+    mK.convertTo(tK,CV_64F);
+    Mat fF = M_Untils::ComputeFundamentalMat(E, tK, tK);
+    vector<bool> vbMatches;
+    fF.convertTo(fF,CV_32F);
+    double currentScore = CheckFundamental(fF, vbMatches, mSigma);
+    cout << "+++++> " << currentScore << endl;
+    cv::Mat tR,tT;
+    R.convertTo(tR,CV_32F);
+    t.convertTo(tT,CV_32F);
+    cout << tR.type() <<  " " << tT.type() << endl;
+    return Reconstruct(vbMatches,tR,tT,mK,vP3D,vbTRiangulated,minParallax);
 }
 
 bool Initializer::Initialize(const Frame &CurrentFrame, const vector<int> &vMatches12, cv::Mat &R21, cv::Mat &t21,
@@ -111,6 +149,7 @@ bool Initializer::Initialize(const Frame &CurrentFrame, const vector<int> &vMatc
     // Compute ratio of scores
     float RH = SH/(SH+SF);
     const float minParallax = 1.0;
+   
     // Try to reconstruct from homography or fundamental depending on the ratio (0.40-0.45)
     if(RH>0.40)
         return ReconstructH(vbMatchesInliersH,H,mK,R21,t21,vP3D,vbTriangulated,minParallax,50);
@@ -467,6 +506,14 @@ float Initializer::CheckFundamental(const cv::Mat &F21, vector<bool> &vbMatchesI
     return score;
 }
 
+
+bool Initializer::Reconstruct(vector<bool> &vbMatchesInliners, const cv::Mat &R, const cv::Mat &t,cv::Mat &K,vector<cv::Point3f> &vP3D, vector<bool> &vbTriangulated, float parallax)
+{
+    int good = CheckRT(R,t,mvKeys1,mvKeys2,mvMatches12,vbMatchesInliners,K, vP3D, 4.0*mSigma2, vbTriangulated, parallax);
+    cout << "good size : " << good << endl;
+    return good;
+}
+
 bool Initializer::ReconstructF(vector<bool> &vbMatchesInliers, cv::Mat &F21, cv::Mat &K,
                             cv::Mat &R21, cv::Mat &t21, vector<cv::Point3f> &vP3D, vector<bool> &vbTriangulated, float minParallax, int minTriangulated)
 {
@@ -520,6 +567,7 @@ bool Initializer::ReconstructF(vector<bool> &vbMatchesInliers, cv::Mat &F21, cv:
     }
 
     // If best reconstruction has enough parallax initialize
+    bool ret = false;
     if(maxGood==nGood1)
     {
         if(parallax1>minParallax)
@@ -529,7 +577,7 @@ bool Initializer::ReconstructF(vector<bool> &vbMatchesInliers, cv::Mat &F21, cv:
 
             R1.copyTo(R21);
             t1.copyTo(t21);
-            return true;
+            ret = true;
         }
     }else if(maxGood==nGood2)
     {
@@ -540,7 +588,7 @@ bool Initializer::ReconstructF(vector<bool> &vbMatchesInliers, cv::Mat &F21, cv:
 
             R2.copyTo(R21);
             t1.copyTo(t21);
-            return true;
+            ret = true;
         }
     }else if(maxGood==nGood3)
     {
@@ -551,7 +599,7 @@ bool Initializer::ReconstructF(vector<bool> &vbMatchesInliers, cv::Mat &F21, cv:
 
             R1.copyTo(R21);
             t2.copyTo(t21);
-            return true;
+            ret = true;
         }
     }else if(maxGood==nGood4)
     {
@@ -562,11 +610,11 @@ bool Initializer::ReconstructF(vector<bool> &vbMatchesInliers, cv::Mat &F21, cv:
 
             R2.copyTo(R21);
             t2.copyTo(t21);
-            return true;
+            ret = true;
         }
     }
 
-    return false;
+    return ret;
 }
 
 bool Initializer::ReconstructH(vector<bool> &vbMatchesInliers, cv::Mat &H21, cv::Mat &K,

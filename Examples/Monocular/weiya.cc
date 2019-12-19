@@ -35,7 +35,7 @@
 
 using namespace std;
 
-#define WRITEFILE 0
+#define WRITEFILE 1
 
 int main(int argc, char **argv)
 {
@@ -129,9 +129,6 @@ int main(int argc, char **argv)
             // cout << "real " << ptmt.at<double>(2) << endl;
             predata = it->second;
         }
-        #if WRITEFILE
-        M_Untils::WriteRealTrace(fReal,it->second.pos,picname);
-        #endif
         // Pass the image to the SLAM system
         SLAM.TrackMonocular(im,velcity,picname,tframe);
 
@@ -166,9 +163,17 @@ int main(int argc, char **argv)
 
 #if WRITEFILE
     std::vector<ORB_SLAM2::KeyFrame*> keyframes = SLAM.GetAllKeyFrames();
+    sort(keyframes.begin(),keyframes.end(),ORB_SLAM2::KeyFrame::lId);
     cout << "Begin saving estimate trace! " << keyframes.size() << endl;
     for(int i = 0 ; i < keyframes.size() ; ++i)
     {
+        ImgInfoVIter it = M_DataManager::getSingleton()->begin() + st_no + i;
+
+        size_t len = it->first.size() - 12;
+        std::string picname = it->first.substr(len,6).c_str();
+
+        M_Untils::WriteRealTrace(fReal,it->second.pos,picname);
+
         cv::Mat pos = keyframes[i]->GetPose();
         cv::Mat dpos;
         pos.convertTo(dpos,CV_64F);
@@ -178,8 +183,10 @@ int main(int argc, char **argv)
 
         t = -R.t() * t;
 
-        M_Untils::CalcPoseFromRT(origin,Mat::eye(3,3,CV_64F),t,cam.RCam2Imu,cam.TCam2Imu,blh);
-        M_Untils::WriteEstTrace(fEst,blh,cv::Point3d(0,0,0),"");
+        // M_Untils::CalcPoseFromRT(origin,Mat::eye(3,3,CV_64F),t,cam.RCam2Imu,cam.TCam2Imu,blh);
+        M_Untils::CalcPoseFromRT(origin,R,t,cam.RCam2Imu,cam.TCam2Imu,blh);
+    
+        M_Untils::WriteEstTrace(fEst,blh,M_Untils::CalcGaussErr(it->second.pos,blh),picname);
     }
     cout << "Estimate trace write successfully!!! " << endl;
     fReal.close();

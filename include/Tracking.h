@@ -124,7 +124,7 @@ protected:
     void StereoInitialization();
 
     // Map initialization for monocular
-    void MonocularInitialization();
+    void MonocularInitialization(const cv::Mat &R, const cv::Mat &t);
     void CreateInitialMapMonocular();
 
     void CheckReplacedInLastFrame();
