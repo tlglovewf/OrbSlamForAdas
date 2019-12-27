@@ -382,6 +382,42 @@ public:
        return M_CoorTrans::BLH_to_GaussPrj(rg) - M_CoorTrans::BLH_to_GaussPrj(lf);
     }
 
+    /* get item BLH from two frame gps 
+    */
+    static void CalcTransBLH(const PoseData &lft, const PoseData &rgt, const Mat &R, const Mat &t, BLHCoordinate &blh)
+    {
+        Point3d lft_xyz = M_CoorTrans::BLH_to_XYZ(lft.pos);
+        Point3d rgt_xyz = M_CoorTrans::BLH_to_XYZ(rgt.pos);
+    
+        Mat pt = -R.t() * t;
+        pt.resize(4);
+        pt.at<double>(3) = 1.0;
+        cout << "pt " << pt << endl;
+        Point3d ppt(pt.at<double>(0),pt.at<double>(1), pt.at<double>(2));
+    
+        Point3d yaw = rgt_xyz - lft_xyz;
+    
+        yaw = Normalize(yaw); //z
+    
+        Point3d up = Normalize(lft_xyz);//y
+    
+        Point3d pitch = yaw.cross(up); //x
+    
+        up = yaw.cross(pitch);
+    
+        up = Normalize(up);
+        double tx = -(pitch.x * lft_xyz.x + up.x * lft_xyz.y + yaw.x * lft_xyz.z);
+        double ty = -(pitch.y * lft_xyz.x + up.y * lft_xyz.y + yaw.y * lft_xyz.z);
+        double tz = -(pitch.z * lft_xyz.x + up.z * lft_xyz.y + yaw.z * lft_xyz.z);
+        Mat trans = (Mat_<double>(4,4) << pitch.x , up.x, yaw.x, tx,
+                                          pitch.y , up.y, yaw.y, ty,
+                                          pitch.z , up.z, yaw.z, tz,
+                                          0       , 0   , 0    ,1);
+    
+        Mat p = trans.inv() * pt;
+        blh = M_CoorTrans::XYZ_to_BLH(Point3d(p.at<double>(0) ,p.at<double>(1) ,p.at<double>(2) ));
+    }
+
 };
 
 //及时
