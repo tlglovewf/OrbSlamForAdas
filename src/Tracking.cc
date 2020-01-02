@@ -328,14 +328,14 @@ void Tracking::Track(const cv::Mat &vel)
                     if(!bOK)
                     {
                         cout << "begin track reference." << endl;
-                        // bOK = TrackReferenceKeyFrame();
-                        // cout << "track reference " << bOK << endl;
+                        bOK = TrackReferenceKeyFrame();
+                        cout << "track reference " << bOK << endl;
                         // if(!bOK)
-                        {
-                            vel.convertTo(mVelocity,mVelocity.type());
-                            bOK = TrackWithMotionModel();
-                            cout << "track with motion. " << bOK << endl;
-                        }
+                        // {
+                        //     vel.convertTo(mVelocity,mVelocity.type());
+                        //     bOK = TrackWithMotionModel();
+                        //     cout << "track with motion. " << bOK << endl;
+                        // }
                     } 
                 }
             }
@@ -499,8 +499,7 @@ void Tracking::Track(const cv::Mat &vel)
             if(mpMap->KeyFramesInMap()<=5)
             {
                 cout << "Track lost soon after initialisation, reseting..." << endl;
-                // mpSystem->Reset();
-                pause();
+                mpSystem->Reset();
                 return;
             }
         }
@@ -637,7 +636,7 @@ void Tracking::MonocularInitialization(const cv::Mat &R, const cv::Mat &t)
         cv::Mat tcw; // Current Camera Translation
         vector<bool> vbTriangulated; // Triangulated Correspondences (mvIniMatches)
         vector<cv::DMatch> matches;
-#if 0
+#if 1
         if(mpInitializer->Initialize(mCurrentFrame, mvIniMatches, Rcw, tcw, mvIniP3D, vbTriangulated))
         {
 #else
@@ -713,9 +712,6 @@ void Tracking::CreateInitialMapMonocular()
         if(mvIniMatches[i]<0)
             continue;
 
-        //剔除部分远点
-        if(mvIniP3D[i].z > 60.0)
-            continue;
         //Create MapPoint.
         cv::Mat worldPos(mvIniP3D[i]);
 

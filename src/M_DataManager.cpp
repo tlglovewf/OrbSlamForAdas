@@ -130,9 +130,10 @@ bool M_DataManager::LoadData(const string &pstpath, const string &imupath)
                                                                             &pose._pitch,
                                                                             &pose._yaw,
                                                                             &pose._roll);
-
+                pose.pos.altitude = 0.0;
                 mPoseDatas.emplace_back(std::make_pair(filename, pose));             
            }
+           cout << "图像数据加载完毕！！！" << endl;
             //load imu file
             if(!imupath.empty())
             {
@@ -158,7 +159,7 @@ bool M_DataManager::LoadData(const string &pstpath, const string &imupath)
             }
             
             pstfile.close();
-            cout << "文件加载成功" << endl;
+            cout << "imu数据加载完毕！！！" << endl;
         }
         catch (const std::exception &e)
         {

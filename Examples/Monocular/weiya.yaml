@@ -9,8 +9,8 @@ Sys.VocPath: "/media/tu/Work/GitHub/OrbSlamForAdas/Vocabulary/ORBvoc.txt"
 Sys.ImuPath: "/media/tu/Work/Datas/1002-0001-191107-00/Output/gray/imu.txt"
 Sys.OutPath: "/media/tu/Work/Datas/TracePath/"
 
-Sys.BeginNo: 300
-Sys.EndNo:   1500 #2460
+Sys.BeginNo: 300 #1350
+Sys.EndNo:   1000 #2460
 
 #--------------------------------------------------------------------------------------------
 # Camera Parameters. Adjust them!

@@ -252,7 +252,6 @@ void LocalMapping::CreateNewMapPoints()
         //获取两帧的基线距离
         cv::Mat vBaseline = Ow2-Ow1;
         const float baseline = cv::norm(vBaseline);
-
         if(!mbMonocular)
         {
             if(baseline<pKF2->mb)
@@ -304,11 +303,13 @@ void LocalMapping::CreateNewMapPoints()
             bool bStereo2 = kp2_ur>=0;
 
             // Check parallax between rays
+            //像素坐标转到相机坐标系
             cv::Mat xn1 = (cv::Mat_<float>(3,1) << (kp1.pt.x-cx1)*invfx1, (kp1.pt.y-cy1)*invfy1, 1.0);
             cv::Mat xn2 = (cv::Mat_<float>(3,1) << (kp2.pt.x-cx2)*invfx2, (kp2.pt.y-cy2)*invfy2, 1.0);
-
+            //相机转到世界坐标系
             cv::Mat ray1 = Rwc1*xn1;
             cv::Mat ray2 = Rwc2*xn2;
+            //同名点视差
             const float cosParallaxRays = ray1.dot(ray2)/(cv::norm(ray1)*cv::norm(ray2));
 
             float cosParallaxStereo = cosParallaxRays+1;
@@ -428,11 +429,6 @@ void LocalMapping::CreateNewMapPoints()
             float dist2 = cv::norm(normal2);
 
             if(dist1==0 || dist2==0)
-                continue;
-
-            //过滤部分远点  常量经验值
-            const int sz = 60.0f;
-            if(dist1 > sz)
                 continue;
             
             const float ratioDist = dist2/dist1;

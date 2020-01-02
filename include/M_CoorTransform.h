@@ -189,6 +189,32 @@ public:
 	   b = R2D(b);
 	   return  BLHCoordinate{ b, l, XYZ.z };
    }
+    //经纬度转mercator投影
+    static inline Point3d BLH_to_Mercator(const BLHCoordinate &blh)
+    {
+      Point3d mercator;
+  
+      mercator.x = D2R(blh.longitude) * WGS84Datum.r_max ;
+  
+      mercator.y = log( tan( D2R(blh.latitude) * 0.5 + 0.25 * PI64 ) ) *  WGS84Datum.r_max;
+  
+      mercator.z = 0;// blh.altitude;
+  
+      return mercator;
+   }
+    //mercator投影转经纬度
+    static inline BLHCoordinate Mercator_to_BLH(const Point3d &mercator)
+    {
+      BLHCoordinate blh;
+  
+      blh.longitude = R2D(mercator.x /  WGS84Datum.r_max);
+  
+      blh.altitude  = 0;//blh.altitude;
+  
+      blh.latitude  = R2D(2 * ( atan( exp(mercator.y /  WGS84Datum.r_max))) - 0.5 * PI64);
+  
+      return blh;
+   }
 };
 #endif // !_COORDINATETRANSFORM_H_
 

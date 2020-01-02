@@ -195,7 +195,7 @@ public:
         //imu坐标系->xyz坐标系旋转矩阵
         Mat imu2xyz = xyz2enu.inv() * imu2enu ;
         //计算pre相机坐标系 cur相机位置
-        Mat dstcampt = t;//-R.inv() * t;
+        Mat dstcampt = -R.inv() * t;
         //相机坐标系->imu坐标系
         Mat dstimupt = cam2imuR * dstcampt + cam2imuT;
         //imu坐标系->xyz坐标系
@@ -382,42 +382,45 @@ public:
        return M_CoorTrans::BLH_to_GaussPrj(rg) - M_CoorTrans::BLH_to_GaussPrj(lf);
     }
 
+    /* normalize vector
+    */
+    static inline Point3d Normalize(const Point3d &pt)
+    {
+        return pt / cv::norm(pt);
+    }
+
+
     /* get item BLH from two frame gps 
     */
     static void CalcTransBLH(const PoseData &lft, const PoseData &rgt, const Mat &R, const Mat &t, BLHCoordinate &blh)
     {
         Point3d lft_xyz = M_CoorTrans::BLH_to_XYZ(lft.pos);
         Point3d rgt_xyz = M_CoorTrans::BLH_to_XYZ(rgt.pos);
-    
+
         Mat pt = -R.t() * t;
         pt.resize(4);
         pt.at<double>(3) = 1.0;
-        cout << "pt " << pt << endl;
         Point3d ppt(pt.at<double>(0),pt.at<double>(1), pt.at<double>(2));
-    
-        Point3d yaw = rgt_xyz - lft_xyz;
-    
-        yaw = Normalize(yaw); //z
-    
-        Point3d up = Normalize(lft_xyz);//y
-    
-        Point3d pitch = yaw.cross(up); //x
-    
-        up = yaw.cross(pitch);
-    
-        up = Normalize(up);
-        double tx = -(pitch.x * lft_xyz.x + up.x * lft_xyz.y + yaw.x * lft_xyz.z);
-        double ty = -(pitch.y * lft_xyz.x + up.y * lft_xyz.y + yaw.y * lft_xyz.z);
-        double tz = -(pitch.z * lft_xyz.x + up.z * lft_xyz.y + yaw.z * lft_xyz.z);
-        Mat trans = (Mat_<double>(4,4) << pitch.x , up.x, yaw.x, tx,
-                                          pitch.y , up.y, yaw.y, ty,
-                                          pitch.z , up.z, yaw.z, tz,
-                                          0       , 0   , 0    ,1);
-    
-        Mat p = trans.inv() * pt;
-        blh = M_CoorTrans::XYZ_to_BLH(Point3d(p.at<double>(0) ,p.at<double>(1) ,p.at<double>(2) ));
-    }
 
+        Point3d yaw = rgt_xyz - lft_xyz;
+        cout << "yaw " << yaw << endl;
+        yaw = Normalize(yaw);           //z
+       
+        Point3d up = Normalize(lft_xyz);//y
+
+        Point3d pitch = yaw.cross(up);  //x
+
+        up = yaw.cross(pitch);
+
+        up = Normalize(up);
+        double tx = pitch.x * pt.at<double>(0) + up.x * pt.at<double>(1) + yaw.x * pt.at<double>(2);
+        double ty = pitch.y * pt.at<double>(0) + up.y * pt.at<double>(1) + yaw.y * pt.at<double>(2);
+        double tz = pitch.z * pt.at<double>(0) + up.z * pt.at<double>(1) + yaw.z * pt.at<double>(2);
+   
+        Point3d rst(lft_xyz.x + tx,lft_xyz.y + ty, lft_xyz.z + tz);
+
+        blh = M_CoorTrans::XYZ_to_BLH(rst);        
+    }
 };
 
 //及时

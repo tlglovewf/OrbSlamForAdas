@@ -71,11 +71,11 @@ bool Initializer::Initialize(const Frame &CurrentFrame,const vector<int> &vMatch
     vector<bool> vbMatches;
     fF.convertTo(fF,CV_32F);
     double currentScore = CheckFundamental(fF, vbMatches, mSigma);
-    cout << "+++++> " << currentScore << endl;
+
     cv::Mat tR,tT;
     R.convertTo(tR,CV_32F);
     t.convertTo(tT,CV_32F);
-    cout << tR.type() <<  " " << tT.type() << endl;
+
     return Reconstruct(vbMatches,tR,tT,mK,vP3D,vbTRiangulated,minParallax);
 }
 
@@ -148,7 +148,7 @@ bool Initializer::Initialize(const Frame &CurrentFrame, const vector<int> &vMatc
 
     // Compute ratio of scores
     float RH = SH/(SH+SF);
-    const float minParallax = 1.0;
+    const float minParallax = 0.0;
    
     // Try to reconstruct from homography or fundamental depending on the ratio (0.40-0.45)
     if(RH>0.40)

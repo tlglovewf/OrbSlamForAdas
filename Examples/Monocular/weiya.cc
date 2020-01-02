@@ -37,6 +37,34 @@ using namespace std;
 
 #define WRITEFILE 1
 
+
+void GetCoorFromMercator(const PoseData &pre, const PoseData &cur, const Point3d &pt, BLHCoordinate &blh)
+{
+    cout.precision(15);
+    Point3d pre_xyz = M_CoorTrans::BLH_to_Mercator(pre.pos);
+    Point3d cur_xyz = M_CoorTrans::BLH_to_Mercator(cur.pos);
+
+    Point3d zAxis = M_Untils::Normalize(cur_xyz - pre_xyz);//z
+    
+    Point3d yAxis(0,0,1);                               //y
+
+    Point3d xAxis = M_Untils::Normalize(zAxis.cross(yAxis) );
+
+    yAxis = zAxis.cross(xAxis);
+
+    Mat R = (Mat_<double>(3,3) << xAxis.x , yAxis.x, zAxis.x,
+                                  xAxis.y , yAxis.y, zAxis.y,
+                                  xAxis.z , yAxis.z, zAxis.z);
+
+    Mat t = R * (Mat_<double>(3,1) << pt.x,pt.y,pt.z);
+    Point3d mt = pre_xyz + Point3d(t.at<double>(0), t.at<double>(1), t.at<double>(2));
+
+    blh = M_CoorTrans::Mercator_to_BLH(mt);
+}
+
+
+
+
 int main(int argc, char **argv)
 {
     const string cfgpath = "./weiya.yaml";
@@ -92,6 +120,9 @@ int main(int argc, char **argv)
     PoseData origin  = it->second;
     PoseData predata = it->second;
     cv::Mat abspos = cv::Mat::eye(4,4,CV_64F);
+
+    PoseData nxtor = (it + 1)->second;
+
     for(; it != ed; ++it)
     {
         size_t len = it->first.size() - 12;
@@ -127,6 +158,15 @@ int main(int argc, char **argv)
             // abspos = velcity * abspos;
             // cv::Mat ptmt = -abspos.rowRange(0,3).colRange(0,3).t()*abspos.rowRange(0,3).col(3);
             // cout << "real " << ptmt.at<double>(2) << endl;
+            // BLHCoordinate blh;
+            // // Mat pos = -R.t() * t;
+
+            // M_Untils::CalcTransBLH(predata,it->second,R,t,blh);
+            // M_Untils::WriteRealTrace(fReal,it->second.pos,picname);
+        
+            // Point3d vv = M_CoorTrans::BLH_to_GaussPrj(blh) - M_CoorTrans::BLH_to_GaussPrj(it->second.pos);
+            // M_Untils::WriteEstTrace(fEst,blh,vv,picname);
+    
             predata = it->second;
         }
         // Pass the image to the SLAM system
@@ -158,21 +198,22 @@ int main(int argc, char **argv)
     }
 
     // Stop all threads
-    SLAM.Shutdown();
+     SLAM.Shutdown();
     cout << "Slam Program exe Successfully!" << endl;
 
 #if WRITEFILE
     std::vector<ORB_SLAM2::KeyFrame*> keyframes = SLAM.GetAllKeyFrames();
     sort(keyframes.begin(),keyframes.end(),ORB_SLAM2::KeyFrame::lId);
     cout << "Begin saving estimate trace! " << keyframes.size() << endl;
-    for(int i = 0 ; i < keyframes.size() ; ++i)
+    for(size_t i = 0 ; i < keyframes.size() ; ++i)
     {
         ImgInfoVIter it = M_DataManager::getSingleton()->begin() + st_no + i;
 
         size_t len = it->first.size() - 12;
         std::string picname = it->first.substr(len,6).c_str();
-
-        M_Untils::WriteRealTrace(fReal,it->second.pos,picname);
+        
+        //write ground truth trace
+        // M_Untils::WriteRealTrace(fReal,it->second.pos,picname);
 
         cv::Mat pos = keyframes[i]->GetPose();
         cv::Mat dpos;
@@ -181,12 +222,22 @@ int main(int argc, char **argv)
         cv::Mat t = dpos.rowRange(0,3).col(3);
         BLHCoordinate blh;
 
-        t = -R.t() * t;
-
-        // M_Untils::CalcPoseFromRT(origin,Mat::eye(3,3,CV_64F),t,cam.RCam2Imu,cam.TCam2Imu,blh);
         M_Untils::CalcPoseFromRT(origin,R,t,cam.RCam2Imu,cam.TCam2Imu,blh);
-    
-        M_Untils::WriteEstTrace(fEst,blh,M_Untils::CalcGaussErr(it->second.pos,blh),picname);
+        // M_Untils::WriteRealTrace(fReal,blh,picname);
+        M_Untils::WriteRealTrace(fReal,blh,picname);
+
+        //write estimate trace
+        
+        //M_Untils::CalcTransBLH(origin,nxtor,R,t,blh);
+        
+        // t = -R.t() * t;
+        Point3d p3d(t.at<double>(0),t.at<double>(1),t.at<double>(2));
+        BLHCoordinate temp;
+        //GetCoorFromMercator(origin,nxtor, p3d,temp);
+        M_Untils::CalcTransBLH(origin,nxtor,R,t,temp);
+        
+        //M_Untils::WriteEstTrace(fEst,blh,M_Untils::CalcGaussErr(it->second.pos,blh),picname);
+        M_Untils::WriteEstTrace(fEst,temp,M_Untils::CalcGaussErr(temp,blh),picname);
     }
     cout << "Estimate trace write successfully!!! " << endl;
     fReal.close();
