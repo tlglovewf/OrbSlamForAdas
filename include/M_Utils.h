@@ -403,7 +403,7 @@ public:
         Point3d ppt(pt.at<double>(0),pt.at<double>(1), pt.at<double>(2));
 
         Point3d yaw = rgt_xyz - lft_xyz;
-        cout << "yaw " << yaw << endl;
+
         yaw = Normalize(yaw);           //z
        
         Point3d up = Normalize(lft_xyz);//y
